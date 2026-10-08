@@ -504,9 +504,8 @@ public sealed partial class HistoryViewModel : PageViewModel
     private void Apply()
     {
         var f = Filter.Trim();
-        var all = App.Vault.Data.History;
-        Replace(Items, all.Where(h => f.Length == 0 || h.Action.Contains(f, StringComparison.OrdinalIgnoreCase) || h.Detail.Contains(f, StringComparison.OrdinalIgnoreCase) || h.Server.Contains(f, StringComparison.OrdinalIgnoreCase)).Take(1000));
-        Summary = $"{all.Count} kayıt";
+        Replace(Items, App.Vault.GetHistory(f, 1000));
+        Summary = $"{App.Vault.CountHistory()} kayıt";
     }
 
     [RelayCommand]
@@ -519,7 +518,7 @@ public sealed partial class HistoryViewModel : PageViewModel
             var path = Path.Combine(dir, $"ServerController-gecmis-{DateTime.Now:yyyyMMdd-HHmm}.csv");
             var sb = new StringBuilder("Tarih;Sunucu;İşlem;Detay;Başarılı\n");
             static string E(string s) => "\"" + s.Replace("\"", "\"\"") + "\"";
-            foreach (var h in App.Vault.Data.History)
+            foreach (var h in App.Vault.GetHistory("", int.MaxValue))
                 sb.Append($"{h.Time:dd.MM.yyyy HH:mm:ss};{E(h.Server)};{E(h.Action)};{E(h.Detail)};{(h.Success ? "Evet" : "Hayır")}\n");
             await File.WriteAllTextAsync(path, sb.ToString(), new UTF8Encoding(true));
             await App.Dialogs.AlertAsync("Dışa aktarıldı", $"Geçmiş Excel'de açılabilecek şekilde kaydedildi:\n\n{path}");
@@ -531,8 +530,7 @@ public sealed partial class HistoryViewModel : PageViewModel
     private async Task ClearAsync()
     {
         if (!await App.Dialogs.ConfirmAsync("Geçmişi temizle", "Tüm işlem geçmişi silinsin mi?", "Temizle", danger: true)) return;
-        App.Vault.Data.History.Clear();
-        App.Vault.Save();
+        App.Vault.ClearHistory();
         Apply();
     }
 }

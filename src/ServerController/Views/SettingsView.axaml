@@ -64,10 +64,10 @@
         <StackPanel Spacing="6">
           <TextBlock Text="ℹ️ Hakkında" Classes="h2" />
           <TextBlock Text="{Binding Version, StringFormat='Server Controller sürüm {0}'}" />
-          <TextBlock Text="Veri dosyası (şifreli):" Classes="muted" Margin="0,6,0,0" />
+          <TextBlock Text="Veritabanı (SQLite):" Classes="muted" Margin="0,6,0,0" />
           <SelectableTextBlock Text="{Binding VaultPath}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
           <TextBlock Classes="muted" TextWrapping="Wrap" Margin="0,6,0,0"
-                     Text="Bu dosyayı yedeklerseniz, başka bir bilgisayarda aynı kullanıcı adı ve şifreyle açabilirsiniz." />
+                     Text="Uygulama şifreniz hash olarak, sunucu şifreleriniz AES-256 ile şifrelenmiş olarak saklanır. Uygulama klasörünü (data klasörüyle birlikte) yedeklerseniz başka bir bilgisayarda aynı kullanıcı adı ve şifreyle açabilirsiniz." />
         </StackPanel>
       </Border>
     </StackPanel>

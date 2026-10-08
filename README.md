@@ -9,7 +9,7 @@ PuTTY'de elle yazdığınız komutları arka planda sizin yerinize çalıştır�
 
 | Bölüm | Neler yapılabilir |
 |---|---|
-| 🔐 **Giriş** | Uygulamanın kendi kullanıcı adı / şifresi. Tüm veriler bu şifreyle **AES-256** ile şifrelenir. Hareketsiz kalınca otomatik kilitlenir. |
+| 🔐 **Giriş** | Uygulamanın kendi kullanıcı adı / şifresi (SQLite'ta yalnızca **hash** olarak saklanır). Hareketsiz kalınca otomatik kilitlenir. |
 | 📊 **Gösterge Paneli** | İşlemci, RAM, swap, disk doluluğu, çalışma süresi, servis durumu, en çok kaynak kullanan işlemler, bloklu IP / beyaz liste / son 24 saat saldırı sayıları. |
 | 🛡️ **IP Yönetimi (CrowdSec)** | Bloklu IP'leri sebep, ülke, kalan süre ile listeleme · tek tek veya toplu blok kaldırma · elle IP / IP aralığı bloklama · beyaz liste (allowlist) görüntüleme, ekleme, çıkarma · "Benim IP'mi ekle" · saldırı uyarıları · **IP sorgulama** ("bu IP neden giremiyor?"). |
 | 🔄 **Servisler** | LiteSpeed, MariaDB/MySQL, Exim, Dovecot, FTP, DNS, DirectAdmin, CrowdSec, PHP-FPM… yeniden başlat / başlat / durdur / durum · LiteSpeed önbelleğini temizle · sunucuyu yeniden başlat (çift onaylı). |
@@ -25,15 +25,17 @@ PuTTY'de elle yazdığınız komutları arka planda sizin yerinize çalıştır�
 ### Güvenlik önlemleri
 
 - **Kendini kilitleme koruması:** Uygulama, sunucunun gördüğü sizin IP adresinizi tespit eder ve bu IP'yi (veya onu kapsayan bir aralığı) bloklamanıza izin vermez.
-- **Şifreli veri kasası:** Sunucu şifreleri, komutlar ve geçmiş `%APPDATA%\ServerController\vault.dat` dosyasında, uygulama şifrenizden türetilen anahtarla (PBKDF2 + AES-256-GCM) şifrelenir. Şifre bilinmeden dosya açılamaz.
+- **SQLite veritabanı:** Veriler uygulama klasöründeki `data\servercontroller.db` dosyasında durur.
+  - Uygulama şifresi yalnızca **hash** (PBKDF2-SHA256, 310.000 tur, tuzlu) olarak saklanır.
+  - Sunucu (root) şifreleri SSH bağlantısı için geri okunabilmesi gerektiğinden hash'lenemez. Bunun yerine **AES-256-GCM** ile şifrelenir; anahtar yalnızca doğru uygulama şifresiyle açılır.
 - **Sunucu kimlik doğrulaması:** İlk bağlantıda sunucunun parmak izi gösterilip onayınız alınır ve kaydedilir; sonradan değişirse uyarılırsınız.
 - **Komut enjeksiyonuna karşı koruma:** Kullanıcının yazdığı her değer (IP, açıklama, eklenti adı…) doğrulanır ve kabuk için güvenli şekilde tırnaklanır.
 - Silme, durdurma, yeniden başlatma gibi tehlikeli işlemler her zaman onay ister.
 
 ## Kurulum (kullanıcı için)
 
-1. GitHub'da **Releases** bölümünden (veya **Actions → en son çalışma → Artifacts**) `ServerController.exe` dosyasını indirin.
-2. Dosyayı istediğiniz bir klasöre koyup çift tıklayın. Kurulum gerekmez; .NET yüklü olması da gerekmez.
+1. GitHub'da **Releases** bölümünden `ServerController-win-x64.zip` dosyasını indirin (veya **Actions → en son çalışma → Artifacts**).
+2. Zip'i istediğiniz bir yere (ör. Belgeler veya USB bellek) çıkarın ve klasördeki `ServerController.exe` dosyasına çift tıklayın. Bu **portable** bir sürümdür: kurulum gerekmez, .NET yüklü olması gerekmez. Yedek almak için klasördeki `data` klasörünü kopyalamanız yeterlidir.
    - Windows "Bilinmeyen yayıncı" uyarısı verirse **Ek bilgi → Yine de çalıştır** deyin (uygulama dijital olarak imzalı değildir).
 3. İlk açılışta uygulama için bir **kullanıcı adı ve şifre** belirleyin.
 4. **Sunucular → Sunucu ekle** ile PuTTY'de kullandığınız bilgileri girin:
@@ -57,16 +59,16 @@ PuTTY'de elle yazdığınız komutları arka planda sizin yerinize çalıştır�
 
 ## Geliştirici notları
 
-- C# / .NET 8, [Avalonia UI](https://avaloniaui.net/) 11 (MVVM, CommunityToolkit.Mvvm), [SSH.NET](https://github.com/sshnet/SSH.NET)
+- C# / .NET 8, [Avalonia UI](https://avaloniaui.net/) 11 (MVVM, CommunityToolkit.Mvvm), [SSH.NET](https://github.com/sshnet/SSH.NET), SQLite (Microsoft.Data.Sqlite)
 - Proje yapısı:
-  - `src/ServerController/Services`: SSH bağlantısı, şifreli kasa, CrowdSec / sistem / CustomBuild / WordPress / mail / disk işlemleri
+  - `src/ServerController/Services`: SSH bağlantısı, SQLite veritabanı ve şifreleme, CrowdSec / sistem / CustomBuild / WordPress / mail / disk işlemleri
   - `src/ServerController/ViewModels`: ekran mantığı
   - `src/ServerController/Views` ve `Styles`: arayüz (XAML) ve glassmorphism teması
 - Çalıştırma: `dotnet run --project src/ServerController`
-- Windows için tek dosya exe:
+- Windows için portable klasör:
 
   ```
-  dotnet publish src/ServerController/ServerController.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish
+  dotnet publish src/ServerController/ServerController.csproj -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true -o publish/ServerController
   ```
 
-- GitHub Actions (`.github/workflows/build.yml`) her `main` gönderiminde exe'yi derler. `v1.0.0` gibi bir etiket gönderildiğinde otomatik **Release** oluşturur.
+- GitHub Actions (`.github/workflows/build.yml`) her `main` gönderiminde uygulamayı derler. `v1.0.0` gibi bir etiket gönderildiğinde zip'i içeren otomatik bir **Release** oluşturur.
