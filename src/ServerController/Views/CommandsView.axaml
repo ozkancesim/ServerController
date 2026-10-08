@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.CommandsView"
+             x:DataType="vm:CommandsViewModel"
+             x:Name="Root">
+  <TabControl SelectedIndex="{Binding SelectedTab}">
+    <TabItem Header="⭐ Komut kütüphanem">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,*">
+          <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,12">
+            <TextBlock Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center"
+                       Text="Teknisyeninizin verdiği komutları buraya isim vererek kaydedin; sonra tek tıkla çalıştırın. Komutlar seçili sunucuda root olarak çalışır." />
+            <Button Grid.Column="1" Classes="primary" Content="＋ Yeni komut" Command="{Binding AddCommand}" />
+          </Grid>
+          <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding Library}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="m:SavedCommand">
+                  <Border Classes="glass" Padding="14" Margin="0,0,12,12">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                      <TextBlock Text="{Binding Name}" Classes="h3" />
+                      <TextBlock Grid.Row="1" Text="{Binding Description}" Classes="muted" TextWrapping="Wrap" Margin="0,2,0,8" />
+                      <Border Grid.Row="2" Classes="console" Padding="10,6">
+                        <TextBlock Text="{Binding Command}" TextTrimming="CharacterEllipsis" />
+                      </Border>
+                      <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="6" Margin="0,10,0,0">
+                        <Button Classes="small primary" Content="▶ Çalıştır" Command="{Binding #Root.((vm:CommandsViewModel)DataContext).RunSavedCommand}" CommandParameter="{Binding}" />
+                        <Button Classes="small" Content="✏ Düzenle" Command="{Binding #Root.((vm:CommandsViewModel)DataContext).EditCommand}" CommandParameter="{Binding}" />
+                        <Button Classes="small danger" Content="Sil" Command="{Binding #Root.((vm:CommandsViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </TabItem>
+    <TabItem Header="⌨ Terminal">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,*,Auto">
+          <Border Classes="notice" Margin="0,0,0,10">
+            <TextBlock TextWrapping="Wrap" Text="İleri seviye: Buraya yazdığınız komut seçili sunucuda root olarak çalışır. Ne yaptığından emin olmadığınız komutları çalıştırmayın. Etkileşimli programlar (nano, top) burada çalışmaz. ↑/↓ ile önceki komutlara dönebilirsiniz." />
+          </Border>
+          <Border Grid.Row="1" Classes="console">
+            <ScrollViewer Name="TermScroll">
+              <ItemsControl ItemsSource="{Binding Terminal}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:TerminalEntry">
+                    <StackPanel Margin="0,0,0,12">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <SelectableTextBlock Text="{Binding Command, StringFormat='# {0}'}" Foreground="#8FB4FF" FontWeight="Bold" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{Binding TimeText}" Opacity="0.6" />
+                          <TextBlock Text="{Binding ExitCode, Converter={x:Static v:Conv.ExitText}}" />
+                          <Button Classes="small ghost" Content="⭐ Kaydet" Foreground="#D7E3FF" ToolTip.Tip="Kütüphaneye kaydet"
+                                  Command="{Binding #Root.((vm:CommandsViewModel)DataContext).SaveFromTerminalCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                      </Grid>
+                      <SelectableTextBlock Text="{Binding Output}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+            <TextBox Name="TermInput" Text="{Binding Input}" Watermark="Komut yazın ve Enter'a basın…" Classes="mono" KeyDown="OnInputKeyDown" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
+              <Button Classes="primary" Content="▶ Çalıştır" Command="{Binding RunTerminalCommand}" IsVisible="{Binding !IsRunning}" />
+              <Button Classes="danger" Content="⏹ Durdur" Command="{Binding CancelTerminalCommand}" IsVisible="{Binding IsRunning}" />
+              <Button Content="Temizle" Command="{Binding ClearTerminalCommand}" />
+            </StackPanel>
+          </Grid>
+        </Grid>
+      </Border>
+    </TabItem>
+  </TabControl>
+</UserControl>

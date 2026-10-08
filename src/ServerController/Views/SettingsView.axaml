@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             x:Name="Root">
+  <ScrollViewer>
+    <StackPanel Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
+      <Border Classes="glass">
+        <StackPanel Spacing="14">
+          <TextBlock Text="🎨 Görünüm" Classes="h2" />
+          <ToggleSwitch IsChecked="{Binding IsDark}" OnContent="Koyu tema" OffContent="Açık tema" />
+        </StackPanel>
+      </Border>
+      <Border Classes="glass">
+        <StackPanel Spacing="12">
+          <TextBlock Text="🔐 Güvenlik" Classes="h2" />
+          <Grid ColumnDefinitions="*,220">
+            <StackPanel>
+              <TextBlock Text="Otomatik kilit" FontWeight="SemiBold" />
+              <TextBlock Text="Bu süre boyunca işlem yapılmazsa uygulama kilitlenir ve şifre ister." Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding LockOptions}" SelectedItem="{Binding AutoLock}" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="Uygulama şifresi" FontWeight="SemiBold" />
+              <TextBlock Text="Giriş için kullandığınız kullanıcı adı ve şifreyi değiştirin." Classes="muted" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Şifreyi değiştir" Command="{Binding ChangePasswordCommand}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+      <Border Classes="glass">
+        <StackPanel Spacing="12">
+          <TextBlock Text="⚙️ Varsayılanlar" Classes="h2" />
+          <Grid ColumnDefinitions="*,220">
+            <StackPanel>
+              <TextBlock Text="Varsayılan blok süresi" FontWeight="SemiBold" />
+              <TextBlock Text="Elle IP bloklarken ilk seçili gelecek süre." Classes="muted" />
+            </StackPanel>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding BanOptions}" SelectedItem="{Binding DefaultBan}" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          </Grid>
+          <Grid ColumnDefinitions="*,220">
+            <StackPanel>
+              <TextBlock Text="Gösterge paneli yenileme sıklığı" FontWeight="SemiBold" />
+              <TextBlock Text="İşlemci/RAM bilgisinin ne sıklıkla güncelleneceği." Classes="muted" />
+            </StackPanel>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding RefreshOptions}" SelectedItem="{Binding Refresh}" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="Hazır komutlar" FontWeight="SemiBold" />
+              <TextBlock Text="Silinen hazır komutları kütüphanenize geri ekler." Classes="muted" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Geri yükle" Command="{Binding RestoreDefaultCommandsCommand}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+      <Border Classes="glass">
+        <StackPanel Spacing="6">
+          <TextBlock Text="ℹ️ Hakkında" Classes="h2" />
+          <TextBlock Text="{Binding Version, StringFormat='Server Controller sürüm {0}'}" />
+          <TextBlock Text="Veri dosyası (şifreli):" Classes="muted" Margin="0,6,0,0" />
+          <SelectableTextBlock Text="{Binding VaultPath}" Classes="mono" FontSize="12" TextWrapping="Wrap" />
+          <TextBlock Classes="muted" TextWrapping="Wrap" Margin="0,6,0,0"
+                     Text="Bu dosyayı yedeklerseniz, başka bir bilgisayarda aynı kullanıcı adı ve şifreyle açabilirsiniz." />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

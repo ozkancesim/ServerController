@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel"
+             x:Name="Root">
+  <ScrollViewer>
+    <StackPanel Spacing="14" Margin="0,0,6,10">
+      <Border Classes="notice" IsVisible="{Binding !App.IsConnected}">
+        <TextBlock TextWrapping="Wrap" Text="Sunucuya bağlı değilsiniz. Üstten bir sunucu seçin veya 'Bağlan' düğmesine basın. Sunucu eklemediyseniz soldaki 'Sunucular' sayfasına gidin." />
+      </Border>
+
+      <UniformGrid Columns="4">
+        <Border Classes="glass" Margin="0,0,10,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="⚡ İşlemci" Classes="muted" />
+            <TextBlock Text="{Binding Cpu, Converter={x:Static v:Conv.Percent}}" Classes="big" />
+            <ProgressBar Classes="meter" Classes.hot="{Binding Cpu, Converter={x:Static v:Conv.IsHot}}" Value="{Binding Cpu}" Maximum="100" />
+            <TextBlock Text="{Binding CpuText}" Classes="muted" />
+          </StackPanel>
+        </Border>
+        <Border Classes="glass" Margin="5,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="🧠 Bellek (RAM)" Classes="muted" />
+            <TextBlock Text="{Binding Mem, Converter={x:Static v:Conv.Percent}}" Classes="big" />
+            <ProgressBar Classes="meter" Classes.hot="{Binding Mem, Converter={x:Static v:Conv.IsHot}}" Value="{Binding Mem}" Maximum="100" />
+            <TextBlock Text="{Binding MemText}" Classes="muted" />
+          </StackPanel>
+        </Border>
+        <Border Classes="glass" Margin="5,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="💱 Swap" Classes="muted" />
+            <TextBlock Text="{Binding Swap, Converter={x:Static v:Conv.Percent}}" Classes="big" />
+            <ProgressBar Classes="meter" Classes.hot="{Binding Swap, Converter={x:Static v:Conv.IsHot}}" Value="{Binding Swap}" Maximum="100" />
+            <TextBlock Text="{Binding SwapText}" Classes="muted" />
+          </StackPanel>
+        </Border>
+        <Border Classes="glass" Margin="10,0,0,0">
+          <StackPanel Spacing="8">
+            <TextBlock Text="⏱️ Çalışma süresi" Classes="muted" />
+            <TextBlock Text="{Binding Uptime}" FontSize="20" FontWeight="Bold" Margin="0,6,0,4" />
+            <TextBlock Text="{Binding Load, StringFormat='Yük ortalaması: {0}'}" Classes="muted" />
+            <TextBlock Text="{Binding Hostname}" Classes="muted" />
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <UniformGrid Columns="4">
+        <Button Margin="0,0,10,0" Padding="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding GoIpsCommand}">
+          <Border Classes="glass">
+            <StackPanel Spacing="4">
+              <TextBlock Text="⛔ Bloklu IP" Classes="muted" />
+              <TextBlock Text="{Binding BlockedCount}" Classes="big" Foreground="{DynamicResource DangerBrush}" />
+              <TextBlock Text="Yönetmek için tıklayın →" Classes="muted" />
+            </StackPanel>
+          </Border>
+        </Button>
+        <Button Margin="5,0" Padding="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding GoIpsCommand}">
+          <Border Classes="glass">
+            <StackPanel Spacing="4">
+              <TextBlock Text="✅ Beyaz listede" Classes="muted" />
+              <TextBlock Text="{Binding AllowCount}" Classes="big" Foreground="{DynamicResource SuccessBrush}" />
+              <TextBlock Text="Güvenilir IP adresleri" Classes="muted" />
+            </StackPanel>
+          </Border>
+        </Button>
+        <Button Margin="5,0" Padding="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding GoIpsCommand}">
+          <Border Classes="glass">
+            <StackPanel Spacing="4">
+              <TextBlock Text="🚨 Son 24 saatte saldırı" Classes="muted" />
+              <TextBlock Text="{Binding Alerts24h}" Classes="big" Foreground="{DynamicResource WarnBrush}" />
+              <TextBlock Text="{Binding CrowdSecVersion, StringFormat='CrowdSec {0}'}" Classes="muted" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Border>
+        </Button>
+        <Button Margin="10,0,0,0" Padding="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding GoServicesCommand}">
+          <Border Classes="glass">
+            <StackPanel Spacing="4">
+              <TextBlock Text="🔄 Servisler" Classes="muted" />
+              <TextBlock Text="✓ Sorunsuz" Classes="big" FontSize="24" Margin="0,4" Foreground="{DynamicResource SuccessBrush}" IsVisible="{Binding !HasFailedServices}" />
+              <TextBlock Text="⚠ Sorun var" Classes="big" FontSize="24" Margin="0,4" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding HasFailedServices}" />
+              <TextBlock Text="{Binding ServicesSummary}" Classes="muted" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Border>
+        </Button>
+      </UniformGrid>
+
+      <Grid ColumnDefinitions="*,*">
+        <Border Classes="glass" Margin="0,0,7,0">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Servis durumu" Classes="h2" />
+            <ItemsControl ItemsSource="{Binding Services}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="s:ServiceInfo">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                    <Border Grid.Column="1" Classes="pill success" IsVisible="{Binding IsActive}"><TextBlock Text="● Çalışıyor" /></Border>
+                    <Border Grid.Column="1" Classes="pill danger" IsVisible="{Binding !IsActive}"><TextBlock Text="{Binding State, StringFormat='● {0}'}" /></Border>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <StackPanel Grid.Column="1" Spacing="14" Margin="7,0,0,0">
+          <Border Classes="glass">
+            <StackPanel Spacing="10">
+              <TextBlock Text="💾 Diskler" Classes="h2" />
+              <ItemsControl ItemsSource="{Binding Disks}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="s:DiskInfo">
+                    <StackPanel Spacing="5" Margin="0,4">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Mount}" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1" Text="{Binding Text}" Classes="muted" />
+                      </Grid>
+                      <ProgressBar Classes="meter" Classes.hot="{Binding Percent, Converter={x:Static v:Conv.IsHot}}" Value="{Binding Percent}" Maximum="100" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          <Border Classes="glass">
+            <StackPanel Spacing="8">
+              <TextBlock Text="🔥 En çok kaynak kullanan işlemler" Classes="h2" />
+              <Grid ColumnDefinitions="*,90,60,60">
+                <TextBlock Text="İŞLEM" Classes="colhead" />
+                <TextBlock Grid.Column="1" Text="KULLANICI" Classes="colhead" />
+                <TextBlock Grid.Column="2" Text="CPU" Classes="colhead" />
+                <TextBlock Grid.Column="3" Text="RAM" Classes="colhead" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Processes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="s:ProcessInfo">
+                    <Grid ColumnDefinitions="*,90,60,60" Margin="0,3">
+                      <TextBlock Text="{Binding Command}" Classes="mono" FontSize="12.5" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="1" Text="{Binding User}" Classes="muted" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2" Text="{Binding Cpu, StringFormat='%{0:0.#}'}" />
+                      <TextBlock Grid.Column="3" Text="{Binding Mem, StringFormat='%{0:0.#}'}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          <Border Classes="glass">
+            <StackPanel Spacing="4">
+              <TextBlock Text="ℹ️ Sunucu bilgisi" Classes="h2" Margin="0,0,0,6" />
+              <TextBlock Text="{Binding Hostname, StringFormat='Ad: {0}'}" />
+              <TextBlock Text="{Binding Os, StringFormat='İşletim sistemi: {0}'}" />
+              <TextBlock Text="{Binding Kernel, StringFormat='Çekirdek: {0}'}" Classes="muted" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+      <Button Content="🔄 Yenile" Command="{Binding RefreshCommand}" HorizontalAlignment="Left" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

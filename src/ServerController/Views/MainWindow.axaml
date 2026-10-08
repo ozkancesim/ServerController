@@ -1,0 +1,233 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ServerController.ViewModels"
+        xmlns:m="using:ServerController.Models"
+        xmlns:v="using:ServerController.Views"
+        x:Class="ServerController.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Server Controller"
+        Icon="avares://ServerController/Assets/app.ico"
+        Width="1340" Height="860" MinWidth="1060" MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="38"
+        Background="{DynamicResource GlassBrush}">
+  <Panel>
+    <!-- Arka plan: renkli degrade + yumuşak ışık lekeleri (glassmorphism zemini) -->
+    <Border>
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+          <GradientStop Offset="0" Color="{DynamicResource BgA}" />
+          <GradientStop Offset="0.55" Color="{DynamicResource BgB}" />
+          <GradientStop Offset="1" Color="{DynamicResource BgC}" />
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+    <Canvas IsHitTestVisible="False" ClipToBounds="True">
+      <Ellipse Canvas.Left="-180" Canvas.Top="-200" Width="760" Height="760" Opacity="0.55">
+        <Ellipse.Fill>
+          <RadialGradientBrush>
+            <GradientStop Offset="0" Color="{DynamicResource BlobA}" />
+            <GradientStop Offset="1" Color="#00000000" />
+          </RadialGradientBrush>
+        </Ellipse.Fill>
+      </Ellipse>
+      <Ellipse Canvas.Left="760" Canvas.Top="380" Width="820" Height="820" Opacity="0.45">
+        <Ellipse.Fill>
+          <RadialGradientBrush>
+            <GradientStop Offset="0" Color="{DynamicResource BlobB}" />
+            <GradientStop Offset="1" Color="#00000000" />
+          </RadialGradientBrush>
+        </Ellipse.Fill>
+      </Ellipse>
+      <Ellipse Canvas.Left="900" Canvas.Top="-260" Width="620" Height="620" Opacity="0.35">
+        <Ellipse.Fill>
+          <RadialGradientBrush>
+            <GradientStop Offset="0" Color="{DynamicResource BlobC}" />
+            <GradientStop Offset="1" Color="#00000000" />
+          </RadialGradientBrush>
+        </Ellipse.Fill>
+      </Ellipse>
+      <Ellipse Canvas.Left="180" Canvas.Top="560" Width="520" Height="520" Opacity="0.30">
+        <Ellipse.Fill>
+          <RadialGradientBrush>
+            <GradientStop Offset="0" Color="{DynamicResource BlobC}" />
+            <GradientStop Offset="1" Color="#00000000" />
+          </RadialGradientBrush>
+        </Ellipse.Fill>
+      </Ellipse>
+    </Canvas>
+
+    <Grid RowDefinitions="38,*">
+      <!-- Başlık çubuğu (sürüklenebilir) -->
+      <Border Name="TitleBar" Background="Transparent" PointerPressed="OnTitleBarPressed" DoubleTapped="OnTitleBarDoubleTapped">
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,0" VerticalAlignment="Center" IsHitTestVisible="False">
+          <Image Source="avares://ServerController/Assets/logo.png" Width="18" Height="18" />
+          <TextBlock Text="Server Controller" FontSize="12.5" Classes="muted" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+
+      <!-- Giriş ekranı -->
+      <Grid Grid.Row="1" IsVisible="{Binding !IsLoggedIn}">
+        <Border Classes="glass strong" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="36,32" CornerRadius="26" Margin="0,0,0,40">
+          <StackPanel Spacing="14" DataContext="{Binding Login}" x:DataType="vm:LoginViewModel">
+            <Border Width="72" Height="72" CornerRadius="22" HorizontalAlignment="Center" BoxShadow="0 10 30 0 #557C5CFF">
+              <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                  <GradientStop Offset="0" Color="#6D7CFF" />
+                  <GradientStop Offset="1" Color="#C026D3" />
+                </LinearGradientBrush>
+              </Border.Background>
+              <Image Source="avares://ServerController/Assets/logo.png" Width="44" Height="44" />
+            </Border>
+            <TextBlock Text="{Binding Heading}" Classes="h1" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding SubHeading}" Classes="muted" TextWrapping="Wrap" TextAlignment="Center" FontSize="13" />
+            <StackPanel Spacing="10" Margin="0,8,0,0">
+              <TextBox Name="UserBox" Text="{Binding UserName}" Watermark="Kullanıcı adı" />
+              <TextBox Text="{Binding Password}" PasswordChar="●" Watermark="Şifre" KeyDown="OnLoginKeyDown" />
+              <TextBox Text="{Binding Password2}" PasswordChar="●" Watermark="Şifre (tekrar)" IsVisible="{Binding IsSetup}" KeyDown="OnLoginKeyDown" />
+            </StackPanel>
+            <Border Classes="notice" Background="{DynamicResource DangerSoftBrush}" IsVisible="{Binding Error, Converter={x:Static v:Conv.NotNullOrEmpty}}">
+              <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
+            </Border>
+            <Button Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="14,11"
+                    Command="{Binding SubmitCommand}" IsEnabled="{Binding !IsWorking}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding ButtonText}" FontWeight="SemiBold" />
+                <TextBlock Text="…" IsVisible="{Binding IsWorking}" />
+              </StackPanel>
+            </Button>
+            <Button Classes="ghost small" HorizontalAlignment="Center" Content="Şifremi unuttum" Command="{Binding ForgotCommand}"
+                    IsVisible="{Binding !IsSetup}" Foreground="{DynamicResource MutedBrush}" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <!-- Ana ekran -->
+      <Grid Grid.Row="1" ColumnDefinitions="248,*" IsVisible="{Binding IsLoggedIn}" Margin="14,0,14,14">
+        <!-- Sol menü -->
+        <Border Classes="glass" Padding="12" Margin="0,0,14,0">
+          <Grid RowDefinitions="Auto,*,Auto">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="8,6,8,16">
+              <Border Width="38" Height="38" CornerRadius="12">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#6D7CFF" />
+                    <GradientStop Offset="1" Color="#C026D3" />
+                  </LinearGradientBrush>
+                </Border.Background>
+                <Image Source="avares://ServerController/Assets/logo.png" Width="24" Height="24" />
+              </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Server Controller" FontWeight="Bold" FontSize="14.5" />
+                <TextBlock Text="{Binding UserName, StringFormat='👤 {0}'}" Classes="muted" FontSize="11.5" />
+              </StackPanel>
+            </StackPanel>
+            <ListBox Grid.Row="1" Classes="nav" ItemsSource="{Binding Pages}" SelectedItem="{Binding CurrentPage}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:PageViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="{Binding Icon}" FontSize="16" Width="22" TextAlignment="Center" />
+                    <TextBlock Classes="navtext" Text="{Binding Title}" FontSize="13.5" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,10,0,0">
+              <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,4,0"
+                      Command="{Binding ToggleThemeCommand}" ToolTip.Tip="Açık / koyu tema">
+                <TextBlock Text="🌓 Tema" />
+              </Button>
+              <Button Grid.Column="1" Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4,0,0,0"
+                      Command="{Binding LockAppCommand}" ToolTip.Tip="Uygulamayı kilitle">
+                <TextBlock Text="🔒 Kilitle" />
+              </Button>
+            </Grid>
+          </Grid>
+        </Border>
+
+        <!-- İçerik -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+          <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,12">
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="{Binding CurrentPage.Title, FallbackValue=''}" Classes="h1" />
+              <TextBlock Text="{Binding CurrentPage.Subtitle, FallbackValue=''}" Classes="muted" FontSize="13" />
+            </StackPanel>
+            <Border Grid.Column="1" Classes="glass" Padding="8" CornerRadius="16">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="🖥️" VerticalAlignment="Center" Margin="6,0,0,0" />
+                <ComboBox ItemsSource="{Binding App.Servers}" SelectedItem="{Binding App.CurrentServer}" MinWidth="210"
+                          PlaceholderText="Sunucu seçin" BorderThickness="0" Background="Transparent">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="m:ServerProfile">
+                      <StackPanel>
+                        <TextBlock Text="{Binding Display}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Host}" Classes="muted" FontSize="11" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Border Classes="pill success" IsVisible="{Binding App.IsConnected}">
+                  <TextBlock Text="● Bağlı" />
+                </Border>
+                <Border Classes="pill warn" IsVisible="{Binding App.IsConnecting}">
+                  <TextBlock Text="◌ Bağlanıyor…" />
+                </Border>
+                <Button Classes="small" Command="{Binding ReconnectCommand}" IsVisible="{Binding !App.IsConnected}" ToolTip.Tip="Tekrar bağlan">
+                  <TextBlock Text="🔌 Bağlan" />
+                </Button>
+                <Border Classes="pill" IsVisible="{Binding App.MyIp, Converter={x:Static v:Conv.NotNullOrEmpty}}" ToolTip.Tip="Sunucunun gördüğü IP adresiniz">
+                  <TextBlock Text="{Binding App.MyIp, StringFormat='Benim IP: {0}'}" />
+                </Border>
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <ProgressBar Grid.Row="1" IsIndeterminate="True" Height="3" MinHeight="3" Margin="4,0,4,8" CornerRadius="2"
+                       IsVisible="{Binding CurrentPage.IsBusy, FallbackValue=False}" Foreground="{DynamicResource AccentBrush}" Background="Transparent" />
+
+          <Panel Grid.Row="2">
+            <ContentControl Content="{Binding CurrentPage}" />
+            <Border Classes="glass strong" IsVisible="{Binding CurrentPage.IsBusy, FallbackValue=False}" HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom" Margin="0,0,0,18" Padding="18,10" CornerRadius="999" IsHitTestVisible="False">
+              <TextBlock Text="{Binding CurrentPage.BusyText, FallbackValue=''}" FontSize="13" />
+            </Border>
+          </Panel>
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <!-- Diyaloglar -->
+    <ItemsControl ItemsSource="{Binding Dialogs.Items}" IsVisible="{Binding Dialogs.HasDialog}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate><Panel /></ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:DialogViewModel">
+          <Panel Background="{DynamicResource OverlayBrush}">
+            <Border Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                    CornerRadius="24" Padding="26,22" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="900" MinWidth="440" Margin="40" BoxShadow="0 24 60 0 #66000000">
+              <ContentControl Content="{Binding}" />
+            </Border>
+          </Panel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- Bildirimler -->
+    <ItemsControl ItemsSource="{Binding Toasts.Items}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24" Width="380">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ToastItem">
+          <Border Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                  CornerRadius="16" Padding="14,12" Margin="0,8,0,0" BoxShadow="0 12 30 0 #40000000">
+            <Grid ColumnDefinitions="Auto,*">
+              <TextBlock Text="{Binding Icon}" FontSize="16" Margin="0,0,10,0" />
+              <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" FontSize="13" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </Panel>
+</Window>

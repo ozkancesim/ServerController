@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.ConfirmDialogView"
+             x:DataType="vm:ConfirmDialogViewModel"
+             x:Name="Root">
+  <StackPanel Spacing="16" MaxWidth="560">
+    <TextBlock Text="{Binding Title}" Classes="h2" FontSize="19" />
+    <ScrollViewer MaxHeight="420">
+      <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="14" LineHeight="21" />
+    </ScrollViewer>
+    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,6,0,0">
+      <Button Content="{Binding CancelText}" Command="{Binding CancelCommand}" IsVisible="{Binding HasCancel}" IsCancel="True" />
+      <Button Classes="primary" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsVisible="{Binding IsNormal}" IsDefault="True" />
+      <Button Classes="danger" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsVisible="{Binding IsDanger}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

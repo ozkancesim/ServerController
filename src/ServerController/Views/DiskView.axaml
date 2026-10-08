@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.DiskView"
+             x:DataType="vm:DiskViewModel"
+             x:Name="Root">
+  <TabControl SelectedIndex="{Binding SelectedTab}">
+    <TabItem Header="👤 Kullanıcılar">
+      <Grid ColumnDefinitions="*,320">
+        <Border Classes="glass" Margin="0,0,14,0">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="DirectAdmin kullanıcılarının disk kullanımı" Classes="h2" />
+              <Button Grid.Column="1" Classes="small" Content="🔄 Yeniden hesapla" Command="{Binding RefreshCommand}" />
+            </Grid>
+            <TextBlock Text="Bir kullanıcıya tıklayarak içindeki klasörleri inceleyebilirsiniz." Classes="muted" />
+            <ItemsControl ItemsSource="{Binding Users}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="s:UsageItem">
+                  <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,8"
+                          Command="{Binding #Root.((vm:DiskViewModel)DataContext).OpenUserCommand}" CommandParameter="{Binding}">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Text="{Binding Name, StringFormat='👤 {0}'}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding SizeText}" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="1" Classes="glass">
+          <StackPanel Spacing="10">
+            <TextBlock Text="💾 Diskler" Classes="h2" />
+            <ItemsControl ItemsSource="{Binding Disks}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="s:DiskInfo">
+                  <StackPanel Spacing="5" Margin="0,6">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <TextBlock Text="{Binding Mount}" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding Percent, Converter={x:Static v:Conv.Percent}}" />
+                    </Grid>
+                    <ProgressBar Classes="meter" Classes.hot="{Binding Percent, Converter={x:Static v:Conv.IsHot}}" Value="{Binding Percent}" Maximum="100" />
+                    <TextBlock Text="{Binding Text}" Classes="muted" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </TabItem>
+    <TabItem Header="📂 Klasör gezgini">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,*">
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+            <Button Content="⬆ Üst klasör" Command="{Binding UpCommand}" />
+            <TextBox Text="{Binding CurrentPath}" Width="420" Classes="mono" />
+            <Button Classes="primary" Content="Git" Command="{Binding GoPathCommand}" />
+          </StackPanel>
+          <ListBox Grid.Row="1" Classes="plain" ItemsSource="{Binding Folder}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="s:UsageItem">
+                <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,7"
+                        Command="{Binding #Root.((vm:DiskViewModel)DataContext).OpenFolderCommand}" CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Name, StringFormat='📁 {0}'}" />
+                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontWeight="SemiBold" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </TabItem>
+    <TabItem Header="🐘 Büyük dosyalar">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox ItemsSource="{Binding SizeOptions}" SelectedItem="{Binding MinSize}" MinWidth="160" />
+            <Button Classes="primary" Content="🔍 Büyük dosyaları bul" Command="{Binding FindBigFilesCommand}" />
+          </StackPanel>
+          <TextBlock Grid.Row="1" Classes="muted" Margin="4,10,0,6" TextWrapping="Wrap"
+                     Text="/home, /var ve /usr/local altında arar. Eski yedekler (.tar.gz, .zip) ve şişmiş loglar genelde en çok yer kaplayanlardır. Silmeden önce dosyanın ne olduğundan emin olun." />
+          <ListBox Grid.Row="2" Classes="plain" ItemsSource="{Binding BigFiles}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="s:UsageItem">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="*,100,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <SelectableTextBlock Text="{Binding Path}" Classes="muted mono" FontSize="11.5" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Classes="small danger" Content="Sil" Command="{Binding #Root.((vm:DiskViewModel)DataContext).DeleteFileCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </TabItem>
+  </TabControl>
+</UserControl>

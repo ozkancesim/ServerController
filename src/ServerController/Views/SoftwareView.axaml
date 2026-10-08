@@ -1,0 +1,210 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.SoftwareView"
+             x:DataType="vm:SoftwareViewModel"
+             x:Name="Root">
+  <TabControl SelectedIndex="{Binding SelectedTab}">
+    <!-- ============ PHP & CUSTOMBUILD ============ -->
+    <TabItem Header="🐘 PHP &amp; CustomBuild">
+      <ScrollViewer>
+        <StackPanel Spacing="14" Margin="0,0,6,10">
+          <Border Classes="notice" IsVisible="{Binding CbError, Converter={x:Static v:Conv.NotNullOrEmpty}}">
+            <TextBlock Text="{Binding CbError}" TextWrapping="Wrap" />
+          </Border>
+          <Grid ColumnDefinitions="*,*">
+            <Border Classes="glass" Margin="0,0,7,0">
+              <StackPanel Spacing="12">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel>
+                    <TextBlock Text="PHP sürümleri" Classes="h2" />
+                    <TextBlock Text="{Binding DaVersion, StringFormat='DirectAdmin {0}'}" Classes="muted" />
+                    <TextBlock Text="{Binding WebServer, StringFormat='Web sunucusu: {0}'}" Classes="muted" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="primary small" Content="＋ PHP sürümü ekle" Command="{Binding AddPhpSlotCommand}" VerticalAlignment="Top" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding PhpSlots}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="s:PhpSlot">
+                      <Border Classes="row" Background="{DynamicResource GlassBrush}" Margin="0,4">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                          <Border Classes="pill" Margin="0,0,10,0"><TextBlock Text="{Binding Index, StringFormat='{}{0}. slot'}" /></Border>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Version, StringFormat='PHP {0}'}" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Mode, StringFormat='Mod: {0}'}" Classes="muted" />
+                          </StackPanel>
+                          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                            <Button Classes="small" Content="Değiştir" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).ChangePhpCommand}" CommandParameter="{Binding}" />
+                            <Button Classes="small danger" Content="Kaldır" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).RemovePhpSlotCommand}" CommandParameter="{Binding}" />
+                          </StackPanel>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Classes="glass" Margin="7,0,0,0">
+              <StackPanel Spacing="10">
+                <TextBlock Text="PHP eklentileri" Classes="h2" />
+                <TextBlock Text="Kurmak veya kaldırmak için düğmeye basın. İşlem birkaç dakika sürebilir." Classes="muted" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Extensions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="s:PhpExtension">
+                      <Border Classes="row" Margin="0,2,8,2">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="●" Foreground="{DynamicResource SuccessBrush}" IsVisible="{Binding Enabled}" />
+                            <TextBlock Text="○" Classes="muted" IsVisible="{Binding !Enabled}" />
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                          </StackPanel>
+                          <Button Grid.Column="1" Classes="small success" Content="Kur" IsVisible="{Binding !Enabled}"
+                                  Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).ToggleExtensionCommand}" CommandParameter="{Binding}" />
+                          <Button Grid.Column="1" Classes="small danger" Content="Kaldır" IsVisible="{Binding Enabled}"
+                                  Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).ToggleExtensionCommand}" CommandParameter="{Binding}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </Grid>
+          <Border Classes="glass">
+            <StackPanel Spacing="10">
+              <TextBlock Text="CustomBuild işlemleri" Classes="h2" />
+              <ItemsControl ItemsSource="{Binding BuildActions}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:BuildAction">
+                    <Button Margin="0,0,10,10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                            Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).RunBuildActionCommand}" CommandParameter="{Binding}">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Info}" Classes="muted" TextWrapping="Wrap" FontSize="11.5" />
+                      </StackPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+          <Button Content="🔄 Yenile" Command="{Binding RefreshCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ============ DIRECTADMIN EKLENTİLERİ ============ -->
+    <TabItem Header="🔌 DirectAdmin Eklentileri">
+      <Border Classes="glass">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Sunucuda kurulu DirectAdmin eklentileri. Softaculous kurmak için 'PHP &amp; CustomBuild' sekmesindeki 'Softaculous kur / güncelle' düğmesini kullanın." />
+          <ItemsControl ItemsSource="{Binding Plugins}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="s:DaPlugin">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="*,140,110,Auto">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Author}" Classes="muted" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding Version, StringFormat='Sürüm {0}'}" Classes="muted" VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Classes="pill success" IsVisible="{Binding Active}"><TextBlock Text="Aktif" /></Border>
+                    <Border Grid.Column="2" Classes="pill danger" IsVisible="{Binding !Active}"><TextBlock Text="Pasif" /></Border>
+                    <Button Grid.Column="3" Classes="small" Content="Aç / Kapat" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).TogglePluginCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </TabItem>
+
+    <!-- ============ WORDPRESS ============ -->
+    <TabItem Header="📝 WordPress">
+      <Grid ColumnDefinitions="300,*">
+        <Border Classes="glass" Margin="0,0,14,0" Padding="12">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,8">
+              <TextBlock Text="Siteler" Classes="h2" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Classes="small" Content="🔄" Command="{Binding RefreshWordPressCommand}" />
+            </Grid>
+            <TextBlock Grid.Row="1" Text="{Binding WpSummary}" Classes="muted" Margin="4,0,0,8" TextWrapping="Wrap" />
+            <ListBox Grid.Row="2" Classes="nav" ItemsSource="{Binding Sites}" SelectedItem="{Binding SelectedSite}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="s:WpSite">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Display}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Owner, StringFormat='👤 {0}'}" Classes="muted" FontSize="11.5" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+        <Border Grid.Column="1" Classes="glass" Padding="12">
+          <Grid RowDefinitions="Auto,Auto,Auto,*">
+            <Border Classes="notice" IsVisible="{Binding !HasWpCli}" Margin="0,0,0,10">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="WordPress'i yönetmek için sunucuda WP-CLI aracı gerekli. Tek tıkla kurabilirsiniz." TextWrapping="Wrap" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="primary small" Content="WP-CLI kur" Command="{Binding InstallWpCliCommand}" />
+              </Grid>
+            </Border>
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock Text="{Binding SelectedSite.Display, FallbackValue='Soldan bir site seçin'}" Classes="h2" />
+                <TextBlock Text="{Binding WpCoreVersion}" Classes="muted" IsVisible="{Binding SelectedSite, Converter={x:Static v:Conv.NotNullOrEmpty}}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" IsVisible="{Binding SelectedSite, Converter={x:Static v:Conv.NotNullOrEmpty}}">
+                <Button Classes="small" Content="🧹 Önbellek" Command="{Binding WpCacheFlushCommand}" />
+                <Button Classes="small" Content="⬆ WordPress'i güncelle" Command="{Binding WpCoreUpdateCommand}" />
+                <Button Classes="small" Content="⬆ Tüm eklentiler" Command="{Binding WpUpdateAllCommand}" />
+                <Button Classes="small primary" Content="＋ Eklenti kur" Command="{Binding WpInstallCommand}" />
+              </StackPanel>
+            </Grid>
+            <Grid Grid.Row="2" ColumnDefinitions="*,110,120,Auto" Margin="10,14,10,6">
+              <TextBlock Text="EKLENTİ" Classes="colhead" />
+              <TextBlock Grid.Column="1" Text="SÜRÜM" Classes="colhead" />
+              <TextBlock Grid.Column="2" Text="DURUM" Classes="colhead" />
+              <TextBlock Grid.Column="3" Text="" Width="250" />
+            </Grid>
+            <ListBox Grid.Row="3" Classes="plain" ItemsSource="{Binding WpPlugins}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="s:WpPlugin">
+                  <Border Classes="row">
+                    <Grid ColumnDefinitions="*,110,120,Auto">
+                      <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Name}" Classes="muted mono" FontSize="11.5" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Version}" />
+                        <TextBlock Text="{Binding UpdateVersion, StringFormat='→ {0}'}" Foreground="{DynamicResource WarnBrush}" FontSize="11.5" IsVisible="{Binding HasUpdate}" />
+                      </StackPanel>
+                      <Border Grid.Column="2" Classes="pill success" IsVisible="{Binding IsActive}"><TextBlock Text="{Binding StatusText}" /></Border>
+                      <Border Grid.Column="2" Classes="pill" IsVisible="{Binding !IsActive}"><TextBlock Text="{Binding StatusText}" /></Border>
+                      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Width="250" HorizontalAlignment="Right">
+                        <Button Classes="small primary" Content="Güncelle" IsVisible="{Binding HasUpdate}" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).WpUpdateCommand}" CommandParameter="{Binding}" />
+                        <Button Classes="small" Content="Aç / Kapat" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).WpToggleCommand}" CommandParameter="{Binding}" />
+                        <Button Classes="small danger" Content="Sil" Command="{Binding #Root.((vm:SoftwareViewModel)DataContext).WpDeleteCommand}" CommandParameter="{Binding}" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+      </Grid>
+    </TabItem>
+  </TabControl>
+</UserControl>

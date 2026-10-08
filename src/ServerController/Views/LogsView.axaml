@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.LogsView"
+             x:DataType="vm:LogsViewModel"
+             x:Name="Root">
+  <Grid ColumnDefinitions="260,*">
+    <Border Classes="glass" Padding="10" Margin="0,0,14,0">
+      <ListBox Classes="nav" ItemsSource="{Binding Sources}" SelectedItem="{Binding Source}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="s:LogSource">
+            <StackPanel>
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Info}" Classes="muted" FontSize="11.5" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+    <Border Grid.Column="1" Classes="glass" Padding="12">
+      <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox Text="{Binding Filter}" Watermark="🔍 Satırlarda ara (örn. bir IP)…" Width="260" />
+            <CheckBox IsChecked="{Binding OnlyErrors}" Content="Sadece hata/uyarı" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <ComboBox ItemsSource="{Binding LineOptions}" SelectedItem="{Binding LineCount}" MinWidth="150" />
+            <Button Content="🔄 Yenile" Command="{Binding RefreshCommand}" />
+            <Button Classes="primary" Content="▶ Canlı izle" Command="{Binding ToggleFollowCommand}" IsVisible="{Binding !IsFollowing}" />
+            <Button Classes="danger" Content="⏹ Durdur" Command="{Binding ToggleFollowCommand}" IsVisible="{Binding IsFollowing}" />
+          </StackPanel>
+        </Grid>
+        <Border Grid.Row="1" Classes="console">
+          <ScrollViewer Name="LogScroll" HorizontalScrollBarVisibility="Auto">
+            <SelectableTextBlock Text="{Binding Content}" />
+          </ScrollViewer>
+        </Border>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>
