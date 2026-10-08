@@ -1,0 +1,204 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.CrowdSecView"
+             x:DataType="vm:CrowdSecViewModel"
+             x:Name="Root">
+  <TabControl SelectedIndex="{Binding SelectedTab}">
+    <!-- ================= BLOKLANANLAR ================= -->
+    <TabItem Header="⛔ Bloklananlar">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
+          <Grid ColumnDefinitions="*,Auto"><WrapPanel ItemSpacing="8" LineSpacing="8" Margin="0,0,8,0">
+              <TextBox Text="{Binding DecisionFilter}" Watermark="🔍 IP, ülke veya sebep ara…" Width="280" />
+              <Button Content="🔄 Yenile" Command="{Binding RefreshDecisionsCommand}" />
+</WrapPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">              <Button Classes="success" Content="✔ Seçilenlerin bloğunu kaldır" Command="{Binding UnblockSelectedCommand}" />
+              <Button Classes="danger" Content="＋ IP blokla" Command="{Binding BlockNewCommand}" />
+            </StackPanel></Grid>
+          <TextBlock Grid.Row="1" Text="{Binding DecisionSummary}" Classes="muted" Margin="4,10,0,6" />
+          <Grid Grid.Row="2" ColumnDefinitions="36,150,*,180,110,120,Auto" Margin="10,6,10,6">
+            <CheckBox IsChecked="{Binding AllChecked}" ToolTip.Tip="Tümünü seç" />
+            <TextBlock Grid.Column="1" Text="IP ADRESİ" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="SEBEP" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="ÜLKE / AĞ" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="4" Text="KALAN SÜRE" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="5" Text="TARİH" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="6" Text="İŞLEMLER" Classes="colhead" Width="250" VerticalAlignment="Center" />
+          </Grid>
+          <ListBox Grid.Row="3" Classes="plain" ItemsSource="{Binding Decisions}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:DecisionRow">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="36,150,*,180,110,120,Auto">
+                    <CheckBox IsChecked="{Binding IsChecked}" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding Item.Value}" Classes="mono" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,8,0">
+                      <TextBlock Text="{Binding Item.ScenarioText}" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Item.OriginText}" Classes="muted" FontSize="11.5" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Item.Country}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Item.AsName}" Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Border Grid.Column="4" Classes="pill warn"><TextBlock Text="{Binding Item.DurationText}" /></Border>
+                    <TextBlock Grid.Column="5" Text="{Binding Item.CreatedText}" Classes="muted" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="6" Width="250" HorizontalAlignment="Right">
+                      <Button Classes="small success" Content="Bloğu kaldır" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).UnblockCommand}" CommandParameter="{Binding}" />
+                      <Button Classes="small" Content="✅ Beyaz liste" ToolTip.Tip="Bloğu kaldır ve beyaz listeye ekle" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).AllowFromDecisionCommand}" CommandParameter="{Binding}" />
+                      <Button Classes="small" Content="🔎" ToolTip.Tip="Bu IP'yi sorgula" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).QueryFromDecisionCommand}" CommandParameter="{Binding}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </TabItem>
+
+    <!-- ================= BEYAZ LİSTE ================= -->
+    <TabItem Header="✅ Beyaz Liste">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+          <Grid ColumnDefinitions="*,Auto"><WrapPanel ItemSpacing="8" LineSpacing="8" Margin="0,0,8,0">
+              <ComboBox ItemsSource="{Binding AllowlistNames}" SelectedItem="{Binding SelectedAllowlist}" MinWidth="170" PlaceholderText="Liste seçin" ToolTip.Tip="Beyaz liste" />
+              <TextBox Text="{Binding AllowFilter}" Watermark="🔍 IP veya açıklama ara…" Width="240" />
+              <Button Content="🔄" ToolTip.Tip="Yenile" Command="{Binding RefreshAllowCommand}" />
+              <Button Content="＋ Liste oluştur" Command="{Binding CreateAllowlistCommand}" />
+</WrapPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">              <Button Classes="danger" Content="Seçilenleri çıkar" Command="{Binding RemoveAllowSelectedCommand}" />
+              <Button Content="📍 Benim IP'mi ekle" Command="{Binding AddMyIpCommand}" />
+              <Button Classes="primary" Content="＋ Beyaz listeye ekle" Command="{Binding AddAllowNewCommand}" />
+            </StackPanel></Grid>
+          <Border Grid.Row="1" Classes="notice" Margin="0,10,0,0" IsVisible="{Binding AllowError, Converter={x:Static v:Conv.NotNullOrEmpty}}">
+            <TextBlock Text="{Binding AllowError}" TextWrapping="Wrap" />
+          </Border>
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="4,10,0,6">
+            <TextBlock Text="{Binding AllowSummary}" Classes="muted" />
+            <TextBlock Grid.Column="1" Text="{Binding MyIpText}" Classes="muted" />
+          </Grid>
+          <Grid Grid.Row="3" ColumnDefinitions="36,170,*,140,140,Auto" Margin="10,6">
+            <CheckBox IsChecked="{Binding AllAllowChecked}" />
+            <TextBlock Grid.Column="1" Text="IP / ARALIK" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="AÇIKLAMA" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="EKLENME" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="4" Text="GEÇERLİLİK" Classes="colhead" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="5" Text="" Width="110" />
+          </Grid>
+          <ListBox Grid.Row="4" Classes="plain" ItemsSource="{Binding Allow}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:AllowRow">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="36,170,*,140,140,Auto">
+                    <CheckBox IsChecked="{Binding IsChecked}" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding Item.Value}" Classes="mono" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Item.Description}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="3" Text="{Binding Item.CreatedText}" Classes="muted" VerticalAlignment="Center" />
+                    <Border Grid.Column="4" Classes="pill success"><TextBlock Text="{Binding Item.ExpirationText}" /></Border>
+                    <Button Grid.Column="5" Classes="small danger" Content="Çıkar" Width="110" HorizontalContentAlignment="Center"
+                            Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).RemoveAllowCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </TabItem>
+
+    <!-- ================= SALDIRI UYARILARI ================= -->
+    <TabItem Header="🚨 Saldırı Uyarıları">
+      <Border Classes="glass" Padding="12">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox Text="{Binding AlertFilter}" Watermark="🔍 IP, ülke veya saldırı türü ara…" Width="300" />
+            <Button Content="🔄 Yenile" Command="{Binding RefreshAlertsCommand}" />
+          </StackPanel>
+          <TextBlock Grid.Row="1" Classes="muted" Margin="4,10,0,6" TextWrapping="Wrap"
+                     Text="CrowdSec'in sunucunuzda tespit ettiği son saldırılar. Bir saldırgan otomatik bloklanmışsa 'Blok' sütununda görünür." />
+          <Grid Grid.Row="2" ColumnDefinitions="130,150,*,170,70,70,Auto" Margin="10,6">
+            <TextBlock Text="TARİH" Classes="colhead" />
+            <TextBlock Grid.Column="1" Text="IP ADRESİ" Classes="colhead" />
+            <TextBlock Grid.Column="2" Text="SALDIRI TÜRÜ" Classes="colhead" />
+            <TextBlock Grid.Column="3" Text="ÜLKE / AĞ" Classes="colhead" />
+            <TextBlock Grid.Column="4" Text="OLAY" Classes="colhead" />
+            <TextBlock Grid.Column="5" Text="BLOK" Classes="colhead" />
+            <TextBlock Grid.Column="6" Text="" Width="200" />
+          </Grid>
+          <ListBox Grid.Row="3" Classes="plain" ItemsSource="{Binding Alerts}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="s:AlertInfo">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="130,150,*,170,70,70,Auto">
+                    <TextBlock Text="{Binding CreatedText}" Classes="muted" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" Classes="mono" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding ScenarioText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Scenario}" />
+                    <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Country}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding AsName}" Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="4" Text="{Binding Events}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="5" Text="⛔" IsVisible="{Binding DecisionCount, Converter={x:Static v:Conv.IsNotZero}}" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="6" Width="200" HorizontalAlignment="Right">
+                      <Button Classes="small" Content="🔎" ToolTip.Tip="Sorgula" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).QueryFromAlertCommand}" CommandParameter="{Binding}" />
+                      <Button Classes="small danger" Content="Blokla" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).BlockFromAlertCommand}" CommandParameter="{Binding}" />
+                      <Button Classes="small" Content="✅" ToolTip.Tip="Beyaz listeye ekle" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).AllowFromAlertCommand}" CommandParameter="{Binding}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+    </TabItem>
+
+    <!-- ================= IP SORGULA ================= -->
+    <TabItem Header="🔎 IP Sorgula">
+      <ScrollViewer>
+        <StackPanel Spacing="14">
+          <Border Classes="glass">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Bir IP adresi neden siteye/maile giremiyor?" Classes="h2" />
+              <TextBlock Classes="muted" TextWrapping="Wrap" Text="IP adresini yazın; bloklu olup olmadığını, beyaz listede olup olmadığını ve geçmiş saldırı kayıtlarını birlikte gösterelim." />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBox Name="QueryBox" Text="{Binding QueryText}" Watermark="Örn: 203.0.113.25" Width="300" FontSize="15" KeyDown="OnQueryKeyDown" />
+                <Button Classes="primary" Content="🔎 Sorgula" Command="{Binding QueryCommand}" />
+                <Button Content="📍 Benim IP'mi sorgula" Command="{Binding QueryMyIpCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Border Classes="glass" IsVisible="{Binding HasQueryResult}">
+            <StackPanel Spacing="12">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <SelectableTextBlock Text="{Binding QueryIp}" Classes="mono" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="{Binding QueryTitle}" Classes="h2" VerticalAlignment="Center" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding QueryBlocked}" />
+                <TextBlock Text="{Binding QueryTitle}" Classes="h2" VerticalAlignment="Center" Foreground="{DynamicResource SuccessBrush}" IsVisible="{Binding !QueryBlocked}" />
+              </StackPanel>
+              <SelectableTextBlock Text="{Binding QueryDetail}" TextWrapping="Wrap" LineHeight="22" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="success" Content="✔ Bloğu kaldır" Command="{Binding QueryUnblockCommand}" IsVisible="{Binding QueryBlocked}" />
+                <Button Classes="primary" Content="✅ Beyaz listeye ekle" Command="{Binding QueryAllowCommand}" IsVisible="{Binding !QueryAllowed}" />
+                <Button Classes="danger" Content="⛔ Blokla" Command="{Binding QueryBlockCommand}" IsVisible="{Binding !QueryBlocked}" />
+              </StackPanel>
+              <TextBlock Text="Saldırı geçmişi" Classes="h3" Margin="0,8,0,0" IsVisible="{Binding QueryAlerts.Count, Converter={x:Static v:Conv.IsNotZero}}" />
+              <ItemsControl ItemsSource="{Binding QueryAlerts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="s:AlertInfo">
+                    <Grid ColumnDefinitions="140,*,80" Margin="0,3">
+                      <TextBlock Text="{Binding CreatedText}" Classes="muted" />
+                      <TextBlock Grid.Column="1" Text="{Binding ScenarioText}" />
+                      <TextBlock Grid.Column="2" Text="{Binding Events, StringFormat='{}{0} olay'}" Classes="muted" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+  </TabControl>
+</UserControl>

@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.ServicesView"
+             x:DataType="vm:ServicesViewModel"
+             x:Name="Root">
+  <Grid RowDefinitions="Auto,*">
+    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="🔄 Yenile" Command="{Binding RefreshCommand}" />
+        <Button Content="🧹 LiteSpeed önbelleğini temizle" Command="{Binding PurgeCacheCommand}" />
+      </StackPanel>
+      <Button Grid.Column="1" Classes="danger" Content="⏻ Sunucuyu yeniden başlat" Command="{Binding RebootCommand}" />
+    </Grid>
+    <Border Grid.Row="1" Classes="glass" Padding="10">
+      <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*,200,140,Auto" Margin="10,4,10,8">
+          <TextBlock Text="SERVİS" Classes="colhead" />
+          <TextBlock Grid.Column="1" Text="SİSTEM ADI" Classes="colhead" />
+          <TextBlock Grid.Column="2" Text="DURUM" Classes="colhead" />
+          <TextBlock Grid.Column="3" Text="İŞLEMLER" Classes="colhead" Width="330" />
+        </Grid>
+        <ScrollViewer Grid.Row="1">
+          <ItemsControl ItemsSource="{Binding Services}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="s:ServiceInfo">
+                <Border Classes="row">
+                  <Grid ColumnDefinitions="*,200,140,Auto">
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Description}" Classes="muted" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding Unit}" Classes="mono muted" VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Classes="pill success" IsVisible="{Binding IsActive}"><TextBlock Text="● Çalışıyor" /></Border>
+                    <Border Grid.Column="2" Classes="pill danger" IsVisible="{Binding !IsActive}"><TextBlock Text="{Binding State, StringFormat='● {0}'}" /></Border>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Width="330" HorizontalAlignment="Right">
+                      <Button Classes="small" Content="🔄 Yeniden başlat" Command="{Binding #Root.((vm:ServicesViewModel)DataContext).RestartCommand}" CommandParameter="{Binding}" />
+                      <Button Classes="small success" Content="▶ Başlat" Command="{Binding #Root.((vm:ServicesViewModel)DataContext).StartCommand}" CommandParameter="{Binding}" IsVisible="{Binding !IsActive}" />
+                      <Button Classes="small danger" Content="⏹ Durdur" Command="{Binding #Root.((vm:ServicesViewModel)DataContext).StopCommand}" CommandParameter="{Binding}" IsVisible="{Binding IsActive}" />
+                      <Button Classes="small" Content="📄 Durum" Command="{Binding #Root.((vm:ServicesViewModel)DataContext).StatusCommand}" CommandParameter="{Binding}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

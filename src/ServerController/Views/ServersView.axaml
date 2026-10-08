@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.ServersView"
+             x:DataType="vm:ServersViewModel"
+             x:Name="Root">
+  <ScrollViewer>
+    <StackPanel Spacing="14">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center"
+                   Text="Yönettiğiniz tüm sunucular. Üst menüdeki listeden aktif sunucuyu değiştirebilirsiniz. Şifreler bu bilgisayarda şifrelenmiş olarak saklanır." />
+        <Button Grid.Column="1" Classes="primary" Content="＋ Sunucu ekle" Command="{Binding AddCommand}" />
+      </Grid>
+      <Border Classes="glass" IsVisible="{Binding App.Servers.Count, Converter={x:Static v:Conv.IsZero}}" Padding="30">
+        <StackPanel Spacing="10" HorizontalAlignment="Center">
+          <TextBlock Text="🖥️" FontSize="44" HorizontalAlignment="Center" />
+          <TextBlock Text="Henüz sunucu eklemediniz" Classes="h2" HorizontalAlignment="Center" />
+          <TextBlock Text="PuTTY'de kullandığınız sunucu adresi, port, kullanıcı adı (root) ve şifreyi girerek başlayın." Classes="muted" HorizontalAlignment="Center" />
+          <Button Classes="primary" Content="＋ İlk sunucumu ekle" Command="{Binding AddCommand}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+        </StackPanel>
+      </Border>
+      <ItemsControl ItemsSource="{Binding App.Servers}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="m:ServerProfile">
+            <Border Classes="glass" Margin="0,0,14,14">
+              <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <TextBlock Text="🖥️" FontSize="28" VerticalAlignment="Center" />
+                  <StackPanel>
+                    <TextBlock Text="{Binding Display}" Classes="h2" />
+                    <TextBlock Text="{Binding Address}" Classes="muted mono" />
+                  </StackPanel>
+                </StackPanel>
+                <TextBlock Text="{Binding AllowlistName, StringFormat='Beyaz liste: {0}'}" Classes="muted" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Button Classes="small primary" Content="Bu sunucuya geç" Command="{Binding #Root.((vm:ServersViewModel)DataContext).SelectCommand}" CommandParameter="{Binding}" />
+                  <Button Classes="small" Content="🔌 Test et" Command="{Binding #Root.((vm:ServersViewModel)DataContext).TestCommand}" CommandParameter="{Binding}" />
+                  <Button Classes="small" Content="✏ Düzenle" Command="{Binding #Root.((vm:ServersViewModel)DataContext).EditCommand}" CommandParameter="{Binding}" />
+                  <Button Classes="small danger" Content="Kaldır" Command="{Binding #Root.((vm:ServersViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

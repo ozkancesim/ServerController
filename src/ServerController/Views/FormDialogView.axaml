@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.FormDialogView"
+             x:DataType="vm:FormDialogViewModel"
+             x:Name="Root">
+  <StackPanel Spacing="14" Width="480">
+    <TextBlock Text="{Binding Title}" Classes="h2" FontSize="19" />
+    <TextBlock Text="{Binding Message}" Classes="muted" TextWrapping="Wrap" FontSize="13" IsVisible="{Binding HasMessage}" />
+    <ItemsControl ItemsSource="{Binding Fields}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:FormField">
+          <StackPanel Spacing="6" Margin="0,0,0,12">
+            <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="13" IsVisible="{Binding ShowLabel}" />
+            <TextBox Text="{Binding Text}" Watermark="{Binding Watermark}" PasswordChar="{Binding PasswordChar}"
+                     AcceptsReturn="{Binding AcceptsReturn}" MinHeight="{Binding MinHeight}" TextWrapping="Wrap"
+                     IsVisible="{Binding IsTextLike}" />
+            <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" HorizontalAlignment="Stretch" IsVisible="{Binding IsChoice}" />
+            <CheckBox IsChecked="{Binding Checked}" Content="{Binding Label}" IsVisible="{Binding IsCheck}" />
+            <TextBlock Text="{Binding Hint}" Classes="muted" TextWrapping="Wrap" FontSize="12" IsVisible="{Binding HasHint}" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <Border Classes="notice" Background="{DynamicResource DangerSoftBrush}" IsVisible="{Binding Error, Converter={x:Static v:Conv.NotNullOrEmpty}}">
+      <TextBlock Text="{Binding Error}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
+    </Border>
+    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+      <Button Content="Vazgeç" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Classes="primary" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsVisible="{Binding !IsDanger}" IsDefault="True" />
+      <Button Classes="danger" Content="{Binding ConfirmText}" Command="{Binding ConfirmCommand}" IsVisible="{Binding IsDanger}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

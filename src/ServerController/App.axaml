@@ -1,0 +1,28 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.App"
+             RequestedThemeVariant="Dark">
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:DashboardViewModel"><v:DashboardView /></DataTemplate>
+    <DataTemplate DataType="vm:CrowdSecViewModel"><v:CrowdSecView /></DataTemplate>
+    <DataTemplate DataType="vm:ServicesViewModel"><v:ServicesView /></DataTemplate>
+    <DataTemplate DataType="vm:SoftwareViewModel"><v:SoftwareView /></DataTemplate>
+    <DataTemplate DataType="vm:MailViewModel"><v:MailView /></DataTemplate>
+    <DataTemplate DataType="vm:DiskViewModel"><v:DiskView /></DataTemplate>
+    <DataTemplate DataType="vm:LogsViewModel"><v:LogsView /></DataTemplate>
+    <DataTemplate DataType="vm:CommandsViewModel"><v:CommandsView /></DataTemplate>
+    <DataTemplate DataType="vm:HistoryViewModel"><v:HistoryView /></DataTemplate>
+    <DataTemplate DataType="vm:ServersViewModel"><v:ServersView /></DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel"><v:SettingsView /></DataTemplate>
+    <DataTemplate DataType="vm:ConfirmDialogViewModel"><v:ConfirmDialogView /></DataTemplate>
+    <DataTemplate DataType="vm:FormDialogViewModel"><v:FormDialogView /></DataTemplate>
+    <DataTemplate DataType="vm:OutputDialogViewModel"><v:OutputDialogView /></DataTemplate>
+    <DataTemplate DataType="vm:TextDialogViewModel"><v:TextDialogView /></DataTemplate>
+  </Application.DataTemplates>
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://ServerController/Styles/Theme.axaml" />
+  </Application.Styles>
+</Application>

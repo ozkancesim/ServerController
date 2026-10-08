@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ServerController.ViewModels"
+             xmlns:s="using:ServerController.Services"
+             xmlns:m="using:ServerController.Models"
+             xmlns:v="using:ServerController.Views"
+             x:Class="ServerController.Views.MailView"
+             x:DataType="vm:MailViewModel"
+             x:Name="Root">
+  <Grid ColumnDefinitions="*,300">
+    <Border Classes="glass" Padding="12" Margin="0,0,14,0">
+      <Grid RowDefinitions="Auto,Auto,Auto,*">
+        <Grid ColumnDefinitions="*,Auto"><WrapPanel ItemSpacing="8" LineSpacing="8" Margin="0,0,8,0">
+            <TextBox Text="{Binding Filter}" Watermark="🔍 Gönderen, alıcı veya kimlik ara…" Width="280" />
+            <Button Content="🔄 Yenile" Command="{Binding RefreshCommand}" />
+</WrapPanel><StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">            <Button Classes="danger" Content="Seçilenleri sil" Command="{Binding DeleteSelectedCommand}" />
+            <Button Classes="danger" Content="Bu gönderenin hepsini sil" Command="{Binding DeleteFilteredCommand}" />
+          </StackPanel></Grid>
+        <Border Grid.Row="1" Classes="notice" Margin="0,10,0,4"><TextBlock Text="{Binding Hint}" TextWrapping="Wrap" /></Border>
+        <Grid Grid.Row="2" ColumnDefinitions="36,70,70,*,*,Auto" Margin="10,8,10,6">
+          <CheckBox IsChecked="{Binding AllChecked}" />
+          <TextBlock Grid.Column="1" Text="SÜRE" Classes="colhead" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="2" Text="BOYUT" Classes="colhead" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="3" Text="GÖNDEREN" Classes="colhead" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="4" Text="ALICILAR" Classes="colhead" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="5" Width="80" />
+        </Grid>
+        <ListBox Grid.Row="3" Classes="plain" ItemsSource="{Binding Items}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MailRow">
+              <Border Classes="row">
+                <Grid ColumnDefinitions="36,70,70,*,*,Auto">
+                  <CheckBox IsChecked="{Binding IsChecked}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Item.Age}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding Item.Size}" Classes="muted" VerticalAlignment="Center" />
+                  <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <TextBlock Text="{Binding Item.Sender}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <TextBlock Text="{Binding Item.Id}" Classes="muted mono" FontSize="11" />
+                      <Border Classes="pill danger" Padding="6,0" IsVisible="{Binding Item.Frozen}"><TextBlock Text="donmuş" FontSize="10.5" /></Border>
+                    </StackPanel>
+                  </StackPanel>
+                  <TextBlock Grid.Column="4" Text="{Binding Item.Recipients}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Classes="muted" />
+                  <Button Grid.Column="5" Classes="small" Content="Detay" Width="80" Command="{Binding #Root.((vm:MailViewModel)DataContext).ViewCommand}" CommandParameter="{Binding}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+    </Border>
+    <StackPanel Grid.Column="1" Spacing="14">
+      <Border Classes="glass">
+        <StackPanel Spacing="6">
+          <TextBlock Text="📬 Kuyrukta" Classes="muted" />
+          <TextBlock Text="{Binding Count}" Classes="big" />
+          <TextBlock Text="{Binding FrozenCount, StringFormat='{}{0} donmuş e-posta (listelenenler içinde)'}" Classes="muted" />
+        </StackPanel>
+      </Border>
+      <Border Classes="glass">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Hızlı işlemler" Classes="h3" />
+          <Button Content="📤 Kuyruğu şimdi gönder" Command="{Binding FlushCommand}" HorizontalAlignment="Stretch" />
+          <Button Content="🧊 Donmuşları sil" Command="{Binding DeleteFrozenCommand}" HorizontalAlignment="Stretch" />
+          <Button Classes="danger" Content="🗑 Tüm kuyruğu sil" Command="{Binding DeleteAllCommand}" HorizontalAlignment="Stretch" />
+        </StackPanel>
+      </Border>
+      <Border Classes="glass">
+        <StackPanel Spacing="8">
+          <TextBlock Text="En çok gönderenler" Classes="h3" />
+          <TextBlock Text="Tıklayınca listeyi o gönderene göre süzer." Classes="muted" />
+          <ItemsControl ItemsSource="{Binding TopSenders}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SenderStat">
+                <Button Classes="ghost small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Command="{Binding #Root.((vm:MailViewModel)DataContext).FilterBySenderCommand}" CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Sender}" TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="1" Classes="pill"><TextBlock Text="{Binding Count}" /></Border>
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>
