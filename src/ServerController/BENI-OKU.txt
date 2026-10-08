@@ -1,0 +1,18 @@
+SERVER CONTROLLER - Portable sürüm
+==================================
+
+Başlatmak için: ServerController.exe dosyasına çift tıklayın.
+(İsterseniz sağ tık > Gönder > Masaüstü (kısayol oluştur) ile masaüstüne kısayol koyabilirsiniz.)
+
+Kurulum gerekmez, .NET yüklemeniz gerekmez. Klasörü olduğu gibi istediğiniz yere
+(ör. Belgeler veya bir USB bellek) taşıyabilirsiniz.
+
+Verileriniz bu klasördeki "data" klasöründe, servercontroller.db (SQLite) dosyasında durur:
+  - Uygulama şifreniz: yalnızca hash (PBKDF2-SHA256) olarak saklanır.
+  - Sunucu şifreleri: AES-256-GCM ile şifrelenir; uygulama şifreniz olmadan açılamaz.
+
+Yedek almak için "data" klasörünü kopyalamanız yeterlidir.
+Yeni sürüme geçerken eski klasördeki "data" klasörünü yeni klasöre kopyalayın.
+
+Not: Klasörü "C:\Program Files" gibi yazma izni olmayan bir yere koyarsanız veriler
+%APPDATA%\ServerController klasörüne kaydedilir.

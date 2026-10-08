@@ -50,7 +50,6 @@ public sealed class VaultData
     public string UserName { get; set; } = "";
     public List<ServerProfile> Servers { get; set; } = new();
     public List<SavedCommand> Commands { get; set; } = new();
-    public List<HistoryEntry> History { get; set; } = new();
     public AppSettings Settings { get; set; } = new();
     public string? LastServerId { get; set; }
 

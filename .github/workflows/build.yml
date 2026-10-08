@@ -20,24 +20,26 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Yayınla (tek dosya .exe)
+      - name: Yayınla (portable klasör)
         run: >
           dotnet publish src/ServerController/ServerController.csproj
           -c Release -r win-x64 --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:EnableCompressionInSingleFile=true
+          -p:PublishReadyToRun=true
           -p:DebugType=none
-          -o publish
+          -o publish/ServerController
+
+      - name: Zip oluştur
+        shell: pwsh
+        run: Compress-Archive -Path publish/ServerController -DestinationPath publish/ServerController-win-x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: ServerController-win-x64
-          path: publish/ServerController.exe
+          path: publish/ServerController
 
       - name: Sürüm (release) oluştur
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: publish/ServerController.exe
+          files: publish/ServerController-win-x64.zip
           generate_release_notes: true

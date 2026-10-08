@@ -163,15 +163,13 @@ public sealed partial class AppState : ViewModelBase
 
     public void Log(string action, string detail, bool success = true)
     {
-        Vault.Data.History.Insert(0, new HistoryEntry
+        Vault.AddHistory(new HistoryEntry
         {
             Server = CurrentServer?.Display ?? "-",
             Action = action,
             Detail = detail,
             Success = success,
         });
-        if (Vault.Data.History.Count > 5000) Vault.Data.History.RemoveRange(5000, Vault.Data.History.Count - 5000);
-        Vault.Save();
         HistoryChanged?.Invoke();
     }
 

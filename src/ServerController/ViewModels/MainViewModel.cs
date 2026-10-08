@@ -234,7 +234,7 @@ public sealed partial class LoginViewModel : ViewModelBase
     private async Task ForgotAsync()
     {
         var ok = await _dialogs.ConfirmAsync("Şifremi unuttum",
-            "Güvenlik nedeniyle şifre kurtarılamaz; çünkü tüm verileriniz bu şifreyle şifrelenmiştir.\n\n" +
+            "Güvenlik nedeniyle şifre kurtarılamaz: şifreniz yalnızca hash olarak saklanır ve sunucu şifreleriniz bu şifreyle şifrelenmiştir.\n\n" +
             "Sıfırlarsanız kayıtlı sunucularınız, komutlarınız ve işlem geçmişiniz SİLİNİR ve yeni bir hesap oluşturursunuz. " +
             "Sunucunun kendisinde hiçbir şey değişmez.",
             "Her şeyi sil ve sıfırla", danger: true);
