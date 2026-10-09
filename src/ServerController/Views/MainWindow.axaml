@@ -5,6 +5,7 @@
         xmlns:v="using:ServerController.Views"
         x:Class="ServerController.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        x:Name="Root"
         Title="Server Controller"
         Icon="avares://ServerController/Assets/app.ico"
         Width="1340" Height="860" MinWidth="1060" MinHeight="680"
@@ -133,7 +134,16 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-            <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,10,0,0">
+            <StackPanel Grid.Row="2" Spacing="8" Margin="0,10,0,0">
+            <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding ShowNotificationsCommand}" ToolTip.Tip="Bildirim ve hata geçmişi">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="🔔 Bildirimler" />
+                <Border Classes="pill danger" Padding="7,0" IsVisible="{Binding Toasts.UnreadErrors, Converter={x:Static v:Conv.IsNotZero}}">
+                  <TextBlock Text="{Binding Toasts.UnreadErrors}" />
+                </Border>
+              </StackPanel>
+            </Button>
+            <Grid ColumnDefinitions="*,*">
               <Button Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,4,0"
                       Command="{Binding ToggleThemeCommand}" ToolTip.Tip="Açık / koyu tema">
                 <TextBlock Text="🌓 Tema" />
@@ -143,6 +153,7 @@
                 <TextBlock Text="🔒 Kilitle" />
               </Button>
             </Grid>
+            </StackPanel>
           </Grid>
         </Border>
 
@@ -216,14 +227,20 @@
     </ItemsControl>
 
     <!-- Bildirimler -->
-    <ItemsControl ItemsSource="{Binding Toasts.Items}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24" Width="380">
+    <ItemsControl ItemsSource="{Binding Toasts.Items}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24" Width="400">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="vm:ToastItem">
           <Border Background="{DynamicResource DialogBrush}" BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
                   CornerRadius="16" Padding="14,12" Margin="0,8,0,0" BoxShadow="0 12 30 0 #40000000">
-            <Grid ColumnDefinitions="Auto,*">
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
               <TextBlock Text="{Binding Icon}" FontSize="16" Margin="0,0,10,0" />
-              <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" FontSize="13" />
+              <SelectableTextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" FontSize="13" />
+              <Button Grid.Column="2" Classes="ghost small" Content="✕" VerticalAlignment="Top" Margin="6,-4,-6,0" ToolTip.Tip="Kapat"
+                      Command="{Binding #Root.((vm:MainViewModel)DataContext).CloseToastCommand}" CommandParameter="{Binding}" />
+              <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0" IsVisible="{Binding IsError}">
+                <Button Classes="small" Content="📋 Kopyala" Command="{Binding #Root.((vm:MainViewModel)DataContext).CopyToastCommand}" CommandParameter="{Binding}" />
+                <Button Classes="small" Content="🔔 Tüm bildirimler" Command="{Binding #Root.((vm:MainViewModel)DataContext).ShowNotificationsCommand}" />
+              </StackPanel>
             </Grid>
           </Border>
         </DataTemplate>

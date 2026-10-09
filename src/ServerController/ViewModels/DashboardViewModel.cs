@@ -118,7 +118,7 @@ public sealed partial class DashboardViewModel : PageViewModel
         }
         catch (Exception ex)
         {
-            if (!silent) App.Toasts.Error(ErrorText.From(ex));
+            if (!silent) App.Toasts.Error(ErrorText.From(ex), ex);
         }
         finally
         {
@@ -169,7 +169,7 @@ public sealed partial class ServicesViewModel : PageViewModel
             catch (Exception ex)
             {
                 App.Log("Servis", $"{s.Name} {action} hatası", false);
-                App.Toasts.Error(ErrorText.From(ex));
+                App.Toasts.Error(ErrorText.From(ex), ex);
             }
             Replace(Services, await App.System.GetServicesAsync());
         }, $"{s.Name} işleniyor…");

@@ -63,6 +63,7 @@ Uygulamanın kalbi bu bölümdür. Bloklanan her IP için **neden bloklandığı
 - **"Benim IP'mi ekle"**: şu anki IP adresinizi otomatik bulup beyaz listeye ekler
 - **Saldırı uyarıları**: CrowdSec'in yakaladığı son saldırılar
 - **IP sorgula**: "Bu müşteri neden giremiyor?" sorusunun cevabı tek ekranda
+- **🩺 Teşhis**: "Blokladım ama hâlâ girebiliyor" durumunda nedenini bulur. CrowdSec'i, blok uygulayıcıyı (bouncer), güvenlik duvarını, IPv6'yı ve Cloudflare'i kontrol eder; sitenize son bağlanan IP'leri gösterir
 
 <p align="center">
   <img src="docs/screenshots/03-bloklu-ipler.jpg" width="49%" alt="Bloklu IP listesi" />
@@ -71,6 +72,10 @@ Uygulamanın kalbi bu bölümdür. Bloklanan her IP için **neden bloklandığı
 <p align="center">
   <img src="docs/screenshots/05-ip-sorgula.jpg" width="49%" alt="IP sorgulama" />
   <img src="docs/screenshots/06-kendini-kilitleme-korumasi.jpg" width="49%" alt="Kendini kilitleme koruması" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/14-teshis.jpg" width="80%" alt="Blok teşhisi" />
 </p>
 
 > 🔒 **Kendini kilitleme koruması:** Uygulama, sunucunun gördüğü sizin IP adresinizi bilir ve kendi IP'nizi
@@ -168,6 +173,19 @@ Hayır. Yalnızca sizin seçtiğiniz işlemlerin komutlarını çalıştırır. 
 
 **Verilerimi başka bilgisayara nasıl taşırım?**
 Uygulama klasörünü (içindeki `data` klasörüyle birlikte) kopyalayın. Aynı kullanıcı adı ve şifreyle açılır.
+
+**Bir IP'yi blokladım ama o IP'den siteye hâlâ girilebiliyor. Neden?**
+**IP Yönetimi → 🩺 Teşhis** sekmesini açın, IP'yi ve sitenizin alan adını yazıp *Kontrol et* deyin. En sık nedenler:
+- Site **Cloudflare** arkasındaysa sunucu ziyaretçinin gerçek IP'sini görmez. Bu durumda güvenlik duvarı bloğu web sitesine işlemez.
+- Telefonlar mobil veride çoğunlukla **IPv6** kullanır. whatismyip'in gösterdiği IPv4 adresini bloklamak telefonun IPv6 bağlantısını engellemez.
+- iPhone'da **iCloud Özel Geçiş (Private Relay)** açıksa siteye farklı bir IP ile gidilir.
+- Blok uygulayıcı (**bouncer**) kurulu değilse veya durmuşsa bloklar uygulanmaz.
+
+Teşhis ekranındaki **"Son ziyaretçiler"** listesi, telefonunuzun sunucuya hangi adresle geldiğini gösterir.
+
+**Bir hata mesajı çıktı ama kayboldu, nasıl görebilirim?**
+Hata mesajları siz kapatana kadar ekranda kalır ve **📋 Kopyala** düğmesi vardır. Geçmiş mesajlar sol menüdeki **🔔 Bildirimler**
+düğmesinde durur. Teknik ayrıntılar uygulama klasöründeki `data\logs` içine yazılır.
 
 **Bir hata buldum ya da öneri var.**
 [Issues](https://github.com/ozkancesim/ServerController/issues) bölümünden bildirebilirsiniz.

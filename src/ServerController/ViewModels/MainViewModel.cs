@@ -128,6 +128,37 @@ public sealed partial class MainViewModel : ViewModelBase
         if (await App.ConnectAsync()) Toasts.Success("Sunucuya bağlanıldı.");
     }
 
+    [RelayCommand]
+    private void CloseToast(ToastItem t) => Toasts.Close(t);
+
+    [RelayCommand]
+    private async Task CopyToastAsync(ToastItem t)
+    {
+        await Clip.SetAsync(t.Line);
+        Toasts.Close(t);
+        Toasts.Info("Hata metni panoya kopyalandı. Ctrl+V ile yapıştırabilirsiniz.");
+    }
+
+    [RelayCommand]
+    private async Task ShowNotificationsAsync()
+    {
+        Toasts.UnreadErrors = 0;
+        var text = Toasts.HistoryText() +
+                   $"\n\n— Hataların teknik ayrıntıları şu klasördeki log dosyalarında:\n{ErrorLog.Directory}";
+        await Dialogs.ShowTextAsync("🔔 Bildirim geçmişi (en yeni üstte)", text);
+    }
+
+    [RelayCommand]
+    private void OpenLogFolder()
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(ErrorLog.Directory);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(ErrorLog.Directory) { UseShellExecute = true });
+        }
+        catch (Exception ex) { Toasts.Error("Klasör açılamadı: " + ex.Message); }
+    }
+
     public void NotifyActivity() => _lastActivity = DateTime.Now;
 
     private void CheckAutoLock()

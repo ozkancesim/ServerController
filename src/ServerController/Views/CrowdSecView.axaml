@@ -200,5 +200,88 @@
         </StackPanel>
       </ScrollViewer>
     </TabItem>
+    <!-- ================= TEŞHİS ================= -->
+    <TabItem Header="🩺 Teşhis">
+      <ScrollViewer>
+        <StackPanel Spacing="14" Margin="0,0,6,10">
+          <Border Classes="glass">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Blokladım ama hâlâ girebiliyor, neden?" Classes="h2" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Bloklamanın sunucuda gerçekten uygulanıp uygulanmadığını kontrol eder: CrowdSec, blok uygulayıcı (bouncer), güvenlik duvarı, IPv6 ve Cloudflare. IP'yi ve isterseniz test ettiğiniz sitenin alan adını yazın." />
+              <WrapPanel ItemSpacing="8" LineSpacing="8">
+                <TextBox Text="{Binding DiagIp}" Watermark="Test edilecek IP (örn. bloklediğiniz IP)" Width="260" />
+                <TextBox Text="{Binding DiagDomain}" Watermark="Sitenizin alan adı (örn. ornek.com)" Width="260" />
+                <Button Classes="primary" Content="🩺 Kontrol et" Command="{Binding RunDiagCommand}" />
+                <Button Content="👥 Son ziyaretçiler" Command="{Binding LoadVisitorsCommand}" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="glass" IsVisible="{Binding HasDiag}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Sonuçlar" Classes="h2" />
+              <ItemsControl ItemsSource="{Binding DiagItems}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="s:DiagItem">
+                    <Border Classes="row" Margin="0,2">
+                      <Grid ColumnDefinitions="30,*">
+                        <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Top" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsFail}" />
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsWarn}" />
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" IsVisible="{Binding IsOk}" />
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" IsVisible="{Binding IsInfo}" />
+                          <SelectableTextBlock Text="{Binding Detail}" Classes="muted" FontSize="12.5" TextWrapping="Wrap" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="glass" IsVisible="{Binding HasVisitors}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="👥 Sitenize son bağlananlar" Classes="h2" />
+              <TextBlock Classes="muted" TextWrapping="Wrap"
+                         Text="Telefonunuzdan sitenize girin ve hemen ardından bu listeyi yenileyin: en üstteki satır büyük ihtimalle telefonunuzun sunucunun gördüğü GERÇEK adresidir. Bloklamanız gereken adres budur." />
+              <Grid ColumnDefinitions="260,120,*,70,Auto" Margin="10,6,10,0">
+                <TextBlock Text="IP ADRESİ" Classes="colhead" />
+                <TextBlock Grid.Column="1" Text="SON GÖRÜLME" Classes="colhead" />
+                <TextBlock Grid.Column="2" Text="SİTE / NOT" Classes="colhead" />
+                <TextBlock Grid.Column="3" Text="İSTEK" Classes="colhead" />
+                <TextBlock Grid.Column="4" Width="190" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Visitors}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="s:Visitor">
+                    <Border Classes="row">
+                      <Grid ColumnDefinitions="260,120,*,70,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                          <SelectableTextBlock Text="{Binding Ip}" Classes="mono" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          <Border Classes="pill danger" Padding="6,0" IsVisible="{Binding IsBlocked}"><TextBlock Text="bloklu" FontSize="10.5" /></Border>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="{Binding LastSeenText}" Classes="muted" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Domain}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Note}" Classes="muted" FontSize="11.5" Foreground="{DynamicResource WarnBrush}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="3" Text="{Binding Hits}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" Width="190" HorizontalAlignment="Right">
+                          <Button Classes="small" Content="🩺 Test et" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).UseVisitorForDiagCommand}" CommandParameter="{Binding}" />
+                          <Button Classes="small danger" Content="Blokla" Command="{Binding #Root.((vm:CrowdSecViewModel)DataContext).BlockVisitorCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
   </TabControl>
 </UserControl>

@@ -50,6 +50,14 @@ public sealed partial class CrowdSecViewModel : PageViewModel
     public ObservableCollection<DecisionInfo> QueryDecisions { get; } = new();
     public ObservableCollection<AlertInfo> QueryAlerts { get; } = new();
 
+    // Teşhis
+    [ObservableProperty] private string _diagIp = "";
+    [ObservableProperty] private string _diagDomain = "";
+    [ObservableProperty] private bool _hasDiag;
+    [ObservableProperty] private bool _hasVisitors;
+    public ObservableCollection<DiagItem> DiagItems { get; } = new();
+    public ObservableCollection<Visitor> Visitors { get; } = new();
+
     public string MyIpText => App.MyIp is { } ip ? $"Sizin IP adresiniz: {ip}" : "IP adresiniz bağlandıktan sonra görünür";
 
     partial void OnDecisionFilterChanged(string value) => ApplyDecisionFilter();
@@ -194,7 +202,8 @@ public sealed partial class CrowdSecViewModel : PageViewModel
         {
             await App.CrowdSec.AddDecisionAsync(value, form.Choice("dur"), form.Text("reason"));
             App.Log("IP bloklandı", $"{value} ({form["dur"].Selected?.Label}) {form.Text("reason")}");
-            App.Toasts.Success($"{value} bloklandı.");
+            App.Toasts.Success($"{value} bloklandı. Bloğun gerçekten işlediğini '🩺 Teşhis' sekmesinden kontrol edebilirsiniz.");
+            DiagIp = value.Split('/')[0];
             await LoadDecisionsAsync();
         }, "IP bloklanıyor…");
     }
@@ -491,4 +500,59 @@ public sealed partial class CrowdSecViewModel : PageViewModel
         await BlockAsync(QueryIp);
         await QueryAsync();
     }
+
+    // ---------------- Teşhis ----------------
+
+    [RelayCommand]
+    private Task RunDiagAsync()
+    {
+        string? ip = null;
+        if (DiagIp.Trim().Length > 0)
+        {
+            ip = IpUtil.Normalize(DiagIp);
+            if (ip == null || IpUtil.IsRange(ip)) { App.Toasts.Error("Teşhis için geçerli tek bir IP adresi girin (veya boş bırakın)."); return Task.CompletedTask; }
+        }
+        var domain = NormalizeDomain(DiagDomain);
+        return Busy(async () =>
+        {
+            if (_allAllow.Count == 0 && SelectedAllowlist != null) await LoadAllowAsync();
+            var items = await new DiagnosticsService(App.RequireSession()).RunAsync(ip, domain, _allAllow.Select(a => a.Item).ToList());
+            Replace(DiagItems, items);
+            HasDiag = true;
+            await LoadVisitorsCoreAsync(domain);
+        }, "Sunucu kontrol ediliyor…");
+    }
+
+    [RelayCommand]
+    private Task LoadVisitorsAsync() => Busy(() => LoadVisitorsCoreAsync(NormalizeDomain(DiagDomain)), "Son ziyaretçiler okunuyor…");
+
+    private async Task LoadVisitorsCoreAsync(string? domain)
+    {
+        var blocked = _allDecisions.Select(d => d.Item.Value).ToList();
+        Replace(Visitors, await new DiagnosticsService(App.RequireSession()).RecentVisitorsAsync(domain, blocked));
+        HasVisitors = true;
+    }
+
+    private static string? NormalizeDomain(string d)
+    {
+        d = d.Trim().ToLowerInvariant();
+        if (d.StartsWith("http://")) d = d[7..];
+        if (d.StartsWith("https://")) d = d[8..];
+        d = d.Split('/')[0];
+        return d.Length == 0 ? null : d;
+    }
+
+    [RelayCommand]
+    private Task BlockVisitorAsync(Visitor v)
+    {
+        if (v.IsCloudflare)
+        {
+            App.Toasts.Error("Bu bir Cloudflare sunucu adresi. Bloklarsanız sitenize Cloudflare üzerinden gelen HERKES engellenir.");
+            return Task.CompletedTask;
+        }
+        return BlockAsync(v.Ip);
+    }
+
+    [RelayCommand]
+    private void UseVisitorForDiag(Visitor v) => DiagIp = v.Ip;
 }

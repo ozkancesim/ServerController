@@ -142,12 +142,15 @@ public sealed class SystemService
     public async Task<List<ServiceInfo>> GetServicesAsync()
     {
         var units = string.Join(" ", KnownServices.Select(k => k.Unit));
+        // Not: "systemctl show --value" eski systemd (CentOS 7) sürümlerinde yok; bu yüzden "Ad=Değer" çıktısı kesiliyor.
         var script = $$"""
+            prop() { systemctl show -p "$1" "$2" 2>/dev/null | head -n1 | cut -d= -f2-; }
             for u in {{units}} $(systemctl list-unit-files --no-legend 'php-fpm*.service' 2>/dev/null | awk '{sub(".service","",$1); print $1}'); do
-              if systemctl cat "$u.service" >/dev/null 2>&1; then
-                echo "$u|$(systemctl show -p Id --value "$u")|$(systemctl show -p ActiveState --value "$u")|$(systemctl show -p SubState --value "$u")|$(systemctl show -p Description --value "$u")"
+              if [ "$(prop LoadState "$u")" = "loaded" ]; then
+                echo "$u|$(prop Id "$u")|$(prop ActiveState "$u")|$(prop SubState "$u")|$(prop Description "$u")"
               fi
             done
+            true
             """;
         var r = (await _ssh.RunAsync(script, TimeSpan.FromSeconds(45))).EnsureOk("Servis listesini alma");
         var list = new List<ServiceInfo>();

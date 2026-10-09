@@ -86,6 +86,16 @@ public sealed partial class TextDialogViewModel : DialogViewModel
     public string Text { get; init; } = "";
     public TaskCompletionSource<bool> Result { get; } = new();
     [RelayCommand] private void Ok() { Close(); Result.TrySetResult(true); }
+    [RelayCommand] private Task CopyAsync() => Clip.SetAsync(Text);
+}
+
+public static class Clip
+{
+    public static async Task SetAsync(string text)
+    {
+        var top = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
+        if (top?.Clipboard != null) await top.Clipboard.SetTextAsync(text);
+    }
 }
 
 public enum FieldKind { Text, Password, Choice, Check, MultiLine }
@@ -262,9 +272,5 @@ public sealed partial class OutputDialogViewModel : DialogViewModel
     }
 
     [RelayCommand]
-    private async Task CopyAsync()
-    {
-        var top = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime d ? d.MainWindow : null;
-        if (top?.Clipboard != null) await top.Clipboard.SetTextAsync(Text);
-    }
+    private Task CopyAsync() => Clip.SetAsync(Text);
 }
