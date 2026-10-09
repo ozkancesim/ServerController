@@ -45,8 +45,9 @@ komutları sizin yerinize çalıştırır. Siz yalnızca ne yapmak istediğinizi
    kullanıcı adı (`root`) ve şifre. CrowdSec beyaz liste adını da yazın (örn. `my_allowlist`).
 5. İlk bağlantıda sunucunun kimliğini (parmak izini) onaylayın. Artık hazırsınız. 🎉
 
-> 🔄 **Güncelleme:** Yeni sürümü indirip yeni bir klasöre çıkarın, eski klasördeki **`data`** klasörünü yenisine kopyalayın.
-> Sunucularınız, komutlarınız ve geçmişiniz olduğu gibi gelir.
+> 🔄 **Güncelleme:** Uygulama açılışta yeni sürüm olup olmadığına bakar. Varsa üst çubukta **"⬆ vX.Y.Z hazır"** düğmesi çıkar;
+> tıklayınca yeni sürüm indirilir, doğrulanır (SHA-256) ve uygulama kendini güncelleyip yeniden açılır. Sunucularınız,
+> ayarlarınız ve geçmişiniz (`data` klasörü) korunur. Elle denetlemek için **Ayarlar → Güncellemeler**.
 
 ---
 
@@ -133,6 +134,7 @@ Uzun süren işlemler (PHP derleme gibi) canlı çıktı penceresinde izlenir, i
 - **Birden fazla sunucu:** istediğiniz kadar sunucu ekleyin, üst menüden aralarında geçiş yapın
 - **Koyu ve açık tema:** macOS / iOS tarzı buzlu cam (glassmorphism) tasarım
 - **Otomatik kilit:** belirlediğiniz süre boyunca işlem yapılmazsa uygulama kendini kilitler
+- **Tek tıkla güncelleme:** yeni sürüm çıkınca uygulama içinden indirip kurar
 
 <p align="center">
   <img src="docs/screenshots/01-giris.jpg" width="49%" alt="Giriş ekranı" />

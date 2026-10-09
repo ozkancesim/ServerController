@@ -671,6 +671,12 @@ public sealed partial class SettingsViewModel : PageViewModel
     [ObservableProperty] private ChoiceOption _refresh;
 
     public string VaultPath => VaultService.FilePath;
+    public MainViewModel Main => _main;
+    public bool AutoCheckUpdates
+    {
+        get => App.Settings.AutoCheckUpdates;
+        set { App.Settings.AutoCheckUpdates = value; App.Vault.Save(); OnPropertyChanged(); }
+    }
     public string Version => typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
     public bool IsDark { get => _main.IsDark; set { if (value != _main.IsDark) _main.ToggleThemeCommand.Execute(null); OnPropertyChanged(); } }
 

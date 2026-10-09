@@ -6,12 +6,11 @@
 2. Klasördeki **`ServerController.exe`** dosyasına çift tıklayın. Kurulum gerekmez (portable).
 3. Windows "bilinmeyen yayıncı" uyarısı verirse **Ek bilgi → Yine de çalıştır** deyin.
 
-**Güncelleme:** Eski klasördeki `data` klasörünü yeni klasöre kopyalayın; sunucularınız ve ayarlarınız korunur.
+## ✨ 1.1.0 ile gelenler
 
-## ✨ 1.0.1 ile gelenler
+- **Tek tıkla güncelleme:** Uygulama açılışta yeni sürüm olup olmadığına bakar. Varsa üst çubukta "⬆ yeni sürüm hazır" düğmesi çıkar. Tıklayınca yeni sürüm indirilir, SHA-256 ile doğrulanır, kurulur ve uygulama yeniden açılır. Verileriniz (data klasörü) korunur. Ayarlar → Güncellemeler bölümünden elle de denetleyebilirsiniz.
+- **Düzeltme:** Uygulama kilitlenirken açık kalan pencereler bazı düğmelerin çalışmamasına yol açabiliyordu.
 
-- **🩺 Blok teşhisi** (IP Yönetimi → Teşhis): "Blokladım ama hâlâ girebiliyor" durumunda CrowdSec'i, bouncer'ı, güvenlik duvarını, IPv6'yı ve Cloudflare'i kontrol eder. Sitenize son bağlanan IP'leri gösterir, böylece telefonunuzun sunucuya hangi adresle geldiğini görebilirsiniz.
-- **Hata mesajları artık kaybolmuyor:** siz kapatana kadar ekranda kalıyor ve **📋 Kopyala** düğmesi var. Tüm mesajlar sol menüdeki **🔔 Bildirimler** penceresinde saklanıyor, teknik ayrıntılar `data\logs` klasörüne yazılıyor.
-- **Düzeltme:** Eski systemd sürümlerinde (ör. CentOS 7) gösterge panelinde ve servisler sayfasında oluşan servis listesi hatası giderildi.
+> ℹ️ 1.0.x sürümlerinde güncelleme sistemi olmadığı için **bu sürüme bir kereliğine elle geçmeniz** gerekir: zip'i yeni bir klasöre çıkarın ve eski klasördeki `data` klasörünü yenisine kopyalayın. Bundan sonraki sürümler uygulama içinden kurulur.
 
 Ayrıntılar ve ekran görüntüleri için [README](https://github.com/ozkancesim/ServerController#readme) sayfasına bakın.

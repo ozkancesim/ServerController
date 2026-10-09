@@ -43,6 +43,11 @@ public sealed partial class MainViewModel : ViewModelBase
     [ObservableProperty] private bool _isLoggedIn;
     [ObservableProperty] private PageViewModel? _currentPage;
     [ObservableProperty] private bool _isDark = true;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HasUpdate), nameof(UpdateText))] private UpdateInfo? _availableUpdate;
+
+    public bool HasUpdate => AvailableUpdate != null;
+    public string UpdateText => AvailableUpdate == null ? "" : $"⬆ {AvailableUpdate.Tag} hazır";
+    public string CurrentVersion => "v" + UpdateService.Current;
 
     public string UserName => _vault.Data.UserName;
 
@@ -79,6 +84,85 @@ public sealed partial class MainViewModel : ViewModelBase
         }
         _lastActivity = DateTime.Now;
         _lockTimer.Start();
+        if (App.Settings.AutoCheckUpdates) _ = CheckUpdatesCoreAsync(silent: true);
+    }
+
+    // ---------------- Güncelleme ----------------
+
+    [RelayCommand]
+    private Task CheckUpdatesAsync() => CheckUpdatesCoreAsync(silent: false);
+
+    private async Task CheckUpdatesCoreAsync(bool silent)
+    {
+        try
+        {
+            AvailableUpdate = await Task.Run(() => UpdateService.CheckAsync());
+            if (AvailableUpdate != null)
+                Toasts.Info($"Yeni sürüm hazır: {AvailableUpdate.Tag}. Kurmak için üstteki \"{UpdateText}\" düğmesine tıklayın.");
+            else if (!silent)
+                Toasts.Success($"Uygulamanız güncel ({CurrentVersion}).");
+        }
+        catch (Exception ex)
+        {
+            if (silent) ErrorLog.Write("Güncelleme denetimi başarısız", ex);
+            else Toasts.Error("Güncelleme denetlenemedi: " + ErrorText.From(ex), ex);
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdateAsync()
+    {
+        var info = AvailableUpdate;
+        if (info == null) return;
+        if (!UpdateService.CanSelfUpdate(out var reason))
+        {
+            if (await Dialogs.ConfirmAsync("Otomatik güncelleme yapılamıyor", reason + "\n\nİndirme sayfası açılsın mı?", "Sayfayı aç"))
+                OpenUrl(info.PageUrl);
+            return;
+        }
+        if (Dialogs.Items.OfType<OutputDialogViewModel>().Any(o => o.IsRunning))
+        {
+            Toasts.Info("Önce devam eden işlemin bitmesini bekleyin.");
+            return;
+        }
+        if (!await Dialogs.ConfirmAsync($"Güncelleme: {CurrentVersion} → {info.Tag}",
+                info.Notes + "\n\nYeni sürüm indirilecek, uygulama kapanıp güncellenmiş haliyle yeniden açılacak. " +
+                "Sunucularınız, ayarlarınız ve geçmişiniz (data klasörü) korunur.", "İndir ve kur"))
+            return;
+
+        string? newDir = null;
+        var code = await Dialogs.RunStreamingAsync($"{info.Tag} indiriliyor", async (write, ct) =>
+        {
+            newDir = await UpdateService.DownloadAsync(info, write, ct);
+            write("\nİndirme tamamlandı. Bu pencereyi kapattığınızda uygulama yeniden başlatılacak.\n");
+            return 0;
+        });
+        if (code != 0 || newDir == null) return;
+
+        try
+        {
+            UpdateService.LaunchInstaller(newDir);
+        }
+        catch (Exception ex)
+        {
+            Toasts.Error("Güncelleme başlatılamadı: " + ErrorText.From(ex), ex);
+            return;
+        }
+        App.CurrentServer = null;
+        _vault.Lock();
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime d)
+            d.Shutdown();
+        // Arka planda açık kalan bağlantılar süreci tutmasın; kurulum betiği sürecin kapanmasını bekliyor.
+        Environment.Exit(0);
+    }
+
+    [RelayCommand]
+    private void OpenReleasesPage() => OpenUrl(UpdateService.ReleasesPage);
+
+    private void OpenUrl(string url)
+    {
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (Exception ex) { Toasts.Error("Sayfa açılamadı: " + ex.Message, ex); }
     }
 
     partial void OnCurrentPageChanged(PageViewModel? oldValue, PageViewModel? newValue)
@@ -115,7 +199,7 @@ public sealed partial class MainViewModel : ViewModelBase
         App.CurrentServer = null;
         Pages.Clear();
         CurrentPage = null;
-        Dialogs.Items.Clear();
+        Dialogs.CloseAll();
         _vault.Lock();
         IsLoggedIn = false;
         Login.Reset();
@@ -140,12 +224,12 @@ public sealed partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ShowNotificationsAsync()
+    private void ShowNotifications()
     {
         Toasts.UnreadErrors = 0;
         var text = Toasts.HistoryText() +
                    $"\n\n— Hataların teknik ayrıntıları şu klasördeki log dosyalarında:\n{ErrorLog.Directory}";
-        await Dialogs.ShowTextAsync("🔔 Bildirim geçmişi (en yeni üstte)", text);
+        _ = Dialogs.ShowTextAsync("🔔 Bildirim geçmişi (en yeni üstte)", text);
     }
 
     [RelayCommand]
