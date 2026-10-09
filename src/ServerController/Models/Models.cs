@@ -43,6 +43,7 @@ public sealed class AppSettings
     public int AutoLockMinutes { get; set; } = 15;
     public string DefaultBanDuration { get; set; } = "24h";
     public int DashboardRefreshSeconds { get; set; } = 15;
+    public bool AutoCheckUpdates { get; set; } = true;
 }
 
 public sealed class VaultData

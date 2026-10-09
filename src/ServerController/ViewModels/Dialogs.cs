@@ -17,6 +17,9 @@ public abstract partial class DialogViewModel : ViewModelBase
     public DialogHost? Host { get; set; }
     public string Title { get; init; } = "";
     protected void Close() => Host?.Remove(this);
+
+    /// <summary>Uygulama kilitlenirken diyaloğu bekleyen kodu "vazgeçildi" sonucuyla serbest bırakır.</summary>
+    public virtual void Abort() { }
 }
 
 /// <summary>Pencere içinde üst üste açılabilen cam görünümlü diyalogları yönetir.</summary>
@@ -35,6 +38,12 @@ public sealed class DialogHost : ViewModelBase
     }
 
     public void Remove(DialogViewModel d) => Items.Remove(d);
+
+    public void CloseAll()
+    {
+        foreach (var d in Items.ToList()) d.Abort();
+        Items.Clear();
+    }
 
     public Task<bool> ConfirmAsync(string title, string message, string confirmText = "Evet", bool danger = false, string? cancelText = "Vazgeç")
     {
@@ -79,6 +88,7 @@ public sealed partial class ConfirmDialogViewModel : DialogViewModel
 
     [RelayCommand] private void Confirm() { Close(); Result.TrySetResult(true); }
     [RelayCommand] private void Cancel() { Close(); Result.TrySetResult(false); }
+    public override void Abort() => Result.TrySetResult(false);
 }
 
 public sealed partial class TextDialogViewModel : DialogViewModel
@@ -87,6 +97,7 @@ public sealed partial class TextDialogViewModel : DialogViewModel
     public TaskCompletionSource<bool> Result { get; } = new();
     [RelayCommand] private void Ok() { Close(); Result.TrySetResult(true); }
     [RelayCommand] private Task CopyAsync() => Clip.SetAsync(Text);
+    public override void Abort() => Result.TrySetResult(false);
 }
 
 public static class Clip
@@ -186,6 +197,7 @@ public sealed partial class FormDialogViewModel : DialogViewModel
     }
 
     [RelayCommand] private void Cancel() { Close(); Result.TrySetResult(false); }
+    public override void Abort() => Result.TrySetResult(false);
 }
 
 public sealed partial class OutputDialogViewModel : DialogViewModel
@@ -261,6 +273,12 @@ public sealed partial class OutputDialogViewModel : DialogViewModel
     private void Cancel()
     {
         if (IsRunning) _cts.Cancel();
+    }
+
+    public override void Abort()
+    {
+        _cts.Cancel();
+        _closed.TrySetResult();
     }
 
     [RelayCommand]

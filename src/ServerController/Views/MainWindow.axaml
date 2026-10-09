@@ -166,6 +166,8 @@
             </StackPanel>
             <Border Grid.Column="1" Classes="glass" Padding="8" CornerRadius="16">
               <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="primary small" Content="{Binding UpdateText}" Command="{Binding InstallUpdateCommand}"
+                        IsVisible="{Binding HasUpdate}" ToolTip.Tip="Yeni sürümü indir ve kur" />
                 <TextBlock Text="🖥️" VerticalAlignment="Center" Margin="6,0,0,0" />
                 <ComboBox ItemsSource="{Binding App.Servers}" SelectedItem="{Binding App.CurrentServer}" MinWidth="210"
                           PlaceholderText="Sunucu seçin" BorderThickness="0" Background="Transparent">
