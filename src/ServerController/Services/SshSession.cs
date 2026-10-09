@@ -135,7 +135,7 @@ public sealed class SshSession : IDisposable
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(timeout);
-        using var cmd = _client!.CreateCommand(Prelude + command);
+        using var cmd = _client!.CreateCommand(Prelude + Normalize(command));
         try
         {
             await cmd.ExecuteAsync(cts.Token);
@@ -151,7 +151,7 @@ public sealed class SshSession : IDisposable
     public async Task<int> StreamAsync(string command, Action<string> onText, CancellationToken ct)
     {
         await ConnectAsync(ct);
-        using var cmd = _client!.CreateCommand(Prelude + "exec 2>&1; " + command);
+        using var cmd = _client!.CreateCommand(Prelude + "exec 2>&1; " + Normalize(command));
         var exec = cmd.ExecuteAsync(ct);
         var reader = new StreamReader(cmd.OutputStream, Encoding.UTF8);
         var buffer = new char[4096];
@@ -172,6 +172,12 @@ public sealed class SshSession : IDisposable
         }
         return cmd.ExitStatus ?? -1;
     }
+
+    /// <summary>
+    /// Windows satır sonlarını (CRLF) Linux'a uygun hale getirir. Kaynak kod Windows'ta derlendiğinde çok satırlı
+    /// betikler ve kullanıcının kopyalayıp yapıştırdığı komutlar "\r" içerir; bash bunları sözdizimi hatası sayar.
+    /// </summary>
+    public static string Normalize(string command) => command.Replace("\r\n", "\n").Replace('\r', '\n');
 
     public void Dispose()
     {
