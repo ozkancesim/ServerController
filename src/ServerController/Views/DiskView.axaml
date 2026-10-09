@@ -11,12 +11,13 @@
     <TabItem Header="👤 Kullanıcılar">
       <Grid ColumnDefinitions="*,320">
         <Border Classes="glass" Margin="0,0,14,0">
-          <StackPanel Spacing="8">
+          <Grid RowDefinitions="Auto,Auto,*">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="DirectAdmin kullanıcılarının disk kullanımı" Classes="h2" />
               <Button Grid.Column="1" Classes="small" Content="🔄 Yeniden hesapla" Command="{Binding RefreshCommand}" />
             </Grid>
-            <TextBlock Text="Bir kullanıcıya tıklayarak içindeki klasörleri inceleyebilirsiniz." Classes="muted" />
+            <TextBlock Grid.Row="1" Text="Bir kullanıcıya tıklayarak içindeki klasörleri inceleyebilirsiniz." Classes="muted" Margin="0,8" />
+            <ScrollViewer Grid.Row="2">
             <ItemsControl ItemsSource="{Binding Users}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="s:UsageItem">
@@ -30,9 +31,10 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-          </StackPanel>
+            </ScrollViewer>
+          </Grid>
         </Border>
-        <Border Grid.Column="1" Classes="glass">
+        <Border Grid.Column="1" Classes="glass" VerticalAlignment="Top">
           <StackPanel Spacing="10">
             <TextBlock Text="💾 Diskler" Classes="h2" />
             <ItemsControl ItemsSource="{Binding Disks}">

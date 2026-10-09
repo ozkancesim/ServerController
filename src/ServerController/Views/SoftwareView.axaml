@@ -105,8 +105,9 @@
     <!-- ============ DIRECTADMIN EKLENTİLERİ ============ -->
     <TabItem Header="🔌 DirectAdmin Eklentileri">
       <Border Classes="glass">
-        <StackPanel Spacing="10">
-          <TextBlock Classes="muted" TextWrapping="Wrap" Text="Sunucuda kurulu DirectAdmin eklentileri. Softaculous kurmak için 'PHP &amp; CustomBuild' sekmesindeki 'Softaculous kur / güncelle' düğmesini kullanın." />
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Classes="muted" Margin="0,0,0,10" TextWrapping="Wrap" Text="Sunucuda kurulu DirectAdmin eklentileri. Softaculous kurmak için 'PHP &amp; CustomBuild' sekmesindeki 'Softaculous kur / güncelle' düğmesini kullanın." />
+          <ScrollViewer Grid.Row="1">
           <ItemsControl ItemsSource="{Binding Plugins}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="s:DaPlugin">
@@ -125,7 +126,8 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-        </StackPanel>
+          </ScrollViewer>
+        </Grid>
       </Border>
     </TabItem>
 
