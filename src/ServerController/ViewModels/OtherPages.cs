@@ -270,7 +270,7 @@ public sealed partial class LogsViewModel : PageViewModel
             await Task.Run(() => session.StreamAsync(Source.FollowCommand, s => { lock (_followBuffer) _followBuffer.Append(s); }, ct));
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex)); }
+        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex), ex); }
         finally
         {
             timer.Stop();
@@ -348,7 +348,7 @@ public sealed partial class CommandsViewModel : PageViewModel
         if (c.Confirm && !await App.Dialogs.ConfirmAsync(c.Name, $"Bu komut çalıştırılacak:\n\n{c.Command}\n\nDevam edilsin mi?", "Çalıştır"))
             return;
         try { await App.RunInConsoleAsync(c.Name, c.Command, "Komut: " + c.Name); }
-        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex)); }
+        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex), ex); }
     }
 
     private FormDialogViewModel CommandForm(SavedCommand? c) => new(
@@ -413,7 +413,7 @@ public sealed partial class CommandsViewModel : PageViewModel
         if (cmd.Length == 0 || IsRunning) return;
         SshSession session;
         try { session = App.RequireSession(); }
-        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex)); return; }
+        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex), ex); return; }
 
         var first = cmd.Split(' ')[0];
         if (first is "top" or "htop" or "nano" or "vi" or "vim" or "less" or "more" or "mysql" or "watch")
@@ -523,7 +523,7 @@ public sealed partial class HistoryViewModel : PageViewModel
             await File.WriteAllTextAsync(path, sb.ToString(), new UTF8Encoding(true));
             await App.Dialogs.AlertAsync("Dışa aktarıldı", $"Geçmiş Excel'de açılabilecek şekilde kaydedildi:\n\n{path}");
         }
-        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex)); }
+        catch (Exception ex) { App.Toasts.Error(ErrorText.From(ex), ex); }
     }
 
     [RelayCommand]

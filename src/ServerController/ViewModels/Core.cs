@@ -20,31 +20,76 @@ public sealed partial class ToastItem : ViewModelBase
 {
     public string Message { get; init; } = "";
     public ToastKind Kind { get; init; }
+    public DateTime Time { get; init; } = DateTime.Now;
     public bool IsSuccess => Kind == ToastKind.Success;
     public bool IsError => Kind == ToastKind.Error;
     public bool IsInfo => Kind == ToastKind.Info;
     public string Icon => Kind switch { ToastKind.Success => "✅", ToastKind.Error => "⛔", _ => "ℹ️" };
+    public string Line => $"[{Time:dd.MM.yyyy HH:mm:ss}] {Icon} {Message}";
 }
 
-public sealed class ToastService
+/// <summary>
+/// Ekranın sağ altındaki bildirimler. Hatalar kendiliğinden kaybolmaz (kopyalanabilsin diye),
+/// tüm bildirimler "Bildirimler" penceresinde saklanır ve hatalar ayrıca data/logs klasörüne yazılır.
+/// </summary>
+public sealed partial class ToastService : ObservableObject
 {
     public ObservableCollection<ToastItem> Items { get; } = new();
+    public List<ToastItem> History { get; } = new();
+
+    [ObservableProperty] private int _unreadErrors;
 
     public void Show(string message, ToastKind kind = ToastKind.Info)
     {
         Dispatcher.UIThread.Post(async () =>
         {
             var t = new ToastItem { Message = message, Kind = kind };
+            History.Add(t);
+            if (History.Count > 500) History.RemoveAt(0);
+            if (kind == ToastKind.Error) UnreadErrors++;
             Items.Add(t);
             while (Items.Count > 4) Items.RemoveAt(0);
-            await Task.Delay(kind == ToastKind.Error ? 7000 : 4000);
+            if (kind == ToastKind.Error) return; // hata bildirimleri kullanıcı kapatana kadar kalır
+            await Task.Delay(4500);
             Items.Remove(t);
         });
     }
 
     public void Success(string m) => Show(m, ToastKind.Success);
-    public void Error(string m) => Show(m, ToastKind.Error);
     public void Info(string m) => Show(m, ToastKind.Info);
+
+    public void Error(string m, Exception? ex = null)
+    {
+        ErrorLog.Write(m, ex);
+        Show(m, ToastKind.Error);
+    }
+
+    public void Close(ToastItem t) => Items.Remove(t);
+
+    public string HistoryText() =>
+        History.Count == 0 ? "Henüz bildirim yok." : string.Join("\n", History.AsEnumerable().Reverse().Select(h => h.Line));
+}
+
+/// <summary>Hataları teknik ayrıntılarıyla data/logs/hatalar-YYYYMMDD.log dosyasına yazar.</summary>
+public static class ErrorLog
+{
+    public static string Directory => System.IO.Path.Combine(VaultService.DataDirectory, "logs");
+
+    public static string TodayFile => System.IO.Path.Combine(Directory, $"hatalar-{DateTime.Now:yyyyMMdd}.log");
+
+    public static void Write(string message, Exception? ex)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(Directory);
+            var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n" + (ex != null ? ex + "\n" : "") + "\n";
+            System.IO.File.AppendAllText(TodayFile, text);
+        }
+        catch
+        {
+            // Log yazılamazsa uygulama çalışmaya devam etsin.
+        }
+    }
 }
 
 /// <summary>Uygulama genelinde paylaşılan durum: kasa, aktif sunucu ve bağlantı.</summary>
@@ -127,7 +172,7 @@ public sealed partial class AppState : ViewModelBase
             if (s != Session) return false;
             IsConnected = false;
             ConnectionText = "Bağlantı yok";
-            Toasts.Error(ErrorText.From(ex));
+            Toasts.Error(ErrorText.From(ex), ex);
             return false;
         }
         finally
@@ -230,7 +275,7 @@ public abstract partial class PageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            App.Toasts.Error(ErrorText.From(ex));
+            App.Toasts.Error($"{Title}: {ErrorText.From(ex)}", ex);
             return false;
         }
         finally

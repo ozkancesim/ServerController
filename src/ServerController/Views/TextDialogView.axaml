@@ -11,9 +11,12 @@
     <TextBlock Text="{Binding Title}" Classes="h2" FontSize="19" />
     <Border Classes="console" Height="440">
       <ScrollViewer HorizontalScrollBarVisibility="Auto">
-        <SelectableTextBlock Text="{Binding Text}" />
+        <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" />
       </ScrollViewer>
     </Border>
-    <Button Classes="primary" Content="Kapat" Command="{Binding OkCommand}" HorizontalAlignment="Right" IsDefault="True" IsCancel="True" />
+    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+      <Button Content="📋 Tümünü kopyala" Command="{Binding CopyCommand}" />
+      <Button Classes="primary" Content="Kapat" Command="{Binding OkCommand}" IsDefault="True" IsCancel="True" />
+    </StackPanel>
   </StackPanel>
 </UserControl>
