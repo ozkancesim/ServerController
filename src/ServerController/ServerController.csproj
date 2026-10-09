@@ -9,7 +9,7 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>ServerController</AssemblyName>
     <Product>Server Controller</Product>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <InvariantGlobalization>false</InvariantGlobalization>
     <SatelliteResourceLanguages>tr</SatelliteResourceLanguages>
   </PropertyGroup>
